@@ -1,6 +1,6 @@
 package main
 
-import "github.com/eunanhardy/terrapak/pkg/registry"
+import "terrapak/pkg/registry"
 
 func main() {
 	// ...
