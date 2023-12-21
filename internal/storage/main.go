@@ -1,16 +1,30 @@
 package storage
 
-import "terrapak/internal/config/mid"
+import (
+	"terrapak/internal/config/mid"
+	"terrapak/internal/storage/providers/local"
+	"terrapak/internal/storage/providers/s3"
+)
 
 type StorageProvider interface {
-	NewProvider() StorageProvider
 	Type() string
 	Download(mid mid.MID) (url string, err error)
 	Upload(mid mid.MID, data []byte) error
+	Delete(mid mid.MID) error
 }
 
-type Storage struct {
-	Provider StorageProvider
+
+func NewClient(protocol string) StorageProvider {
+	
+	switch protocol {
+		case "s3":
+			return s3.NewProvider()
+		case "local":
+			return local.NewProvider()
+		default:
+			panic("invalid protocol")
+		}
+
 }
 
 

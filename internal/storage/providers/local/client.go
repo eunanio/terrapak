@@ -3,6 +3,7 @@ package local
 import (
 	"os"
 	"path/filepath"
+	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
 )
 
@@ -19,20 +20,21 @@ type LocalConfig struct {
 	Path string `yaml:"path"`
 }
 
-func NewProvider() {
-
+func NewProvider() *LocalProvider {
+	return &LocalProvider{}
 }
 
-func Type() string {
+func (p *LocalProvider) Type() string {
 	return "local"
 }
 
-func Download(mid mid.MID) (url string, err error) {
+func (p *LocalProvider) Download(mid mid.MID) (url string, err error) {
 	return "", nil
 }
 
-func Upload(mid mid.MID, data []byte) error {
-	path := filepath.Join(WORKING_PATH, mid.Path())
+func (p *LocalProvider) Upload(mid mid.MID, data []byte) error {
+	gc := config.GetDefault()
+	path := filepath.Join(gc.StorageSource.Path,WORKING_PATH, mid.Path())
 
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -43,5 +45,9 @@ func Upload(mid mid.MID, data []byte) error {
 		return err
 	}
 
+	return nil
+}
+
+func (p *LocalProvider) Delete(mid mid.MID) error {
 	return nil
 }

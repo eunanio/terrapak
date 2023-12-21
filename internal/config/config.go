@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
-	"terrapak/internal/storage"
+	"terrapak/internal/api/metadata"
 
 	"gopkg.in/yaml.v2"
 )
@@ -23,15 +23,17 @@ const (
 	ENV_TP_BUCKET 		  = "TP_BUCKET"
 	ENV_CONFIG_FILE 	  = "TP_CONFIG_FILE"
 	ENV_STORAGE_PATH 	  = "TP_STORAGE"
+	ENV_ORGANIZATION 	  = "TP_ORGANIZATION"
 )
 
 type Config struct {
 	Hostname 	 string `yaml:"hostname"`
 	BucketName   string `yaml:"bucket"`
+	Organization string `yaml:"organization"`
 	StoragePath  string `yaml:"storage"`
 	Database 	 DatabaseConfig `yaml:"database"`
 	AuthProvider AuthProviderConfig `yaml:"auth"`
-	Storage 	 storage.StorageSource
+	StorageSource 	 metadata.StorageSource
 }
 
 type AuthProviderConfig struct {
@@ -65,11 +67,11 @@ func Load() Config {
 		}
 	}
 
-	storageSource, err := storage.NewStorageSoruce(c.StoragePath); if err != nil {
+	storageSource, err := metadata.NewStorageSoruce(c.StoragePath); if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	c.Storage = storageSource
+	c.StorageSource = storageSource
 
 	setupEnvs(&c)
 	validate(&c)
@@ -109,6 +111,10 @@ func validate(c *Config){
 
 	if c.AuthProvider.Type == "oauth" && c.AuthProvider.ClientSecret == "" {
 		panic("auth client secret is required for oauth type, please set it in config file or env")
+	}
+
+	if c.Organization == "" {
+		panic("organization is required, either in config file or env")
 	}
 
 }
@@ -153,6 +159,14 @@ func setupEnvs(c *Config){
 
 	_, exists = os.LookupEnv(ENV_STORAGE_PATH); if !exists {
 		os.Setenv(ENV_STORAGE_PATH, c.StoragePath)
+	}
+
+	_, exists = os.LookupEnv(ENV_ORGANIZATION); if !exists {
+		os.Setenv(ENV_ORGANIZATION, c.Organization)
+	}
+
+	if c.Organization == "" {
+		c.Organization = "Default"
 	}
 
 	if c.AuthProvider.Type == "" {

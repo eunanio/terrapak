@@ -3,6 +3,7 @@ package mid
 import (
 	"fmt"
 
+	"github.com/Masterminds/semver"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +28,9 @@ func Parse(c *gin.Context) (mid MID, err error){
 	mid.Provider = c.Param("provider")
 	mid.Namespace = c.Param("namespace")
 	mid.Version = c.Param("version")
+	if mid.Version != "" {
+		mid.Version = buildVersion(mid.Version)
+	}
 	err = validate(mid)
 	return mid, err
 }
@@ -77,5 +81,13 @@ func (m MID) Filepath() string {
 		return ""
 	}
 	return fmt.Sprintf("%s/%s/%s/%s/%s.zip",m.Namespace,m.Provider,m.Name,m.Version,m.Name)
+}
+
+func buildVersion(version string) string {
+	safe_version, err := semver.NewVersion(version)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%d.%d.%d", safe_version.Major(), safe_version.Minor(), safe_version.Patch())
 }
 

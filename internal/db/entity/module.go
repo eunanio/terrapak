@@ -24,7 +24,6 @@ func (Module) TableName() string {
 }
 
 func (m *Module) Up(client *gorm.DB) {
-	fmt.Println("[SETUP] - creating modules table")
 	err := client.AutoMigrate(&Module{}); if err != nil {
 		panic("error migrating modules table")
 	}

@@ -28,11 +28,17 @@ type S3Presign struct {
 	LinkExpire         int
 }
 
-func (s *S3Config) NewProvider() *S3Config {
-	return &S3Config{}
+type S3Provider struct {
+	Client *S3Config
 }
 
-func (s *S3Config) Type() string {
+func NewProvider() *S3Provider {
+	return &S3Provider{
+		Client: loadClient(),
+	}
+}
+
+func (p *S3Provider) Type() string {
 	return "s3"
 }
 
@@ -45,35 +51,35 @@ func loadClient() *S3Config {
 	return &config
 }
 
-func Upload(mid mid.MID, data []byte) {
-	s3c := loadClient()
+func (p *S3Provider) Upload(mid mid.MID, data []byte) error {
+	s3c := p.Client
 	gc := config.GetDefault()
 	S3Client := s3c.Client
-	prefix, filename := shared.BuldPathValues(mid)
 	ctx := context.TODO()
 	
-	key := fmt.Sprintf("%s/%s",prefix,filename)
+	key := mid.Filepath()
 	if S3Client != nil  {
 		_, err := S3Client.PutObject(ctx,&s3.PutObjectInput{
-			Bucket: &gc.BucketName,
+			Bucket: &gc.StorageSource.Path,
 			Key:    &key,
 			Body:   bytes.NewReader(data),
 		})
 		if err != nil {
-			panic(fmt.Sprintf("failed to upload file to s3, %v", err))
+			return fmt.Errorf("failed to upload file to s3, %v", err)
 		}
 	}
 
 	fmt.Println("Successfully uploaded file to s3?")
+	return nil
 }
 
-func (c *S3Config) Download(mid mid.MID) (url string, err error) {
+func (p *S3Provider) Download(mid mid.MID) (url string, err error) {
 	prefix, filename := shared.BuldPathValues(mid)
 	gc := config.GetDefault()
 	ctx := context.TODO()
 	key := fmt.Sprintf("%s/%s",prefix,filename)
 
-	return getPresignUrl(gc.BucketName,key,ctx)
+	return getPresignUrl(gc.BucketName,key,ctx,p.Client)
 }
 
 func (p *S3Presign) setPresignOptions(options *s3.PresignOptions) {
@@ -95,8 +101,8 @@ func (p *S3Presign) Presign(bucket,key string, ctx context.Context) (url string,
 	return request.URL, nil
 }
 
-func getPresignUrl(bucket,key string, ctx context.Context) (url string, err error) {
-	client := loadClient()
+func getPresignUrl(bucket,key string, ctx context.Context, client *S3Config) (url string, err error) {
+
 	S3Client := client.Client
 
 	p := S3Presign{
@@ -118,8 +124,8 @@ func getPresignUrl(bucket,key string, ctx context.Context) (url string, err erro
 	return url, nil
 }
 
-func (s *S3Config)DeleteObject(mid mid.MID){
-	client := loadClient()
+func (p *S3Provider) Delete(mid mid.MID) error {
+	client := p.Client
 	gc := config.GetDefault()
 	S3Client := client.Client
 	prefix, filename := shared.BuldPathValues(mid)
@@ -132,7 +138,9 @@ func (s *S3Config)DeleteObject(mid mid.MID){
 	})
 
 	if err != nil {
-		panic(fmt.Sprintf("failed to delete file from s3, %v", err))
+		return fmt.Errorf("failed to delete file from s3, %v", err)
 	}
+
+	return nil
 }
 

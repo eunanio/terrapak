@@ -23,6 +23,6 @@ func Serve(c *gin.Context) {
 	login.GrantTypes = []string{"authorization_code"}
 	login.Authz = "/v1/auth/authorize"
 	login.Token = "/v1/auth/token"
-	sd.Login = login
+	// sd.Login = login
 	c.JSON(200, sd)
 }

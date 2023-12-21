@@ -7,7 +7,6 @@ type ApiKeys struct {
 	Name  string `json:"name"`
 	Token string `json:"key"`
 	Role  int    `json:"role"`
-	Owner Organization `gorm:"references:ID" json:"owner"`
 }
 
 func (ApiKeys) TableName() string {
