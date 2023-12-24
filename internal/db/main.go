@@ -2,8 +2,6 @@ package db
 
 import (
 	"fmt"
-	pat "terrapak/internal/api/auth/providers/PAT"
-	"terrapak/internal/config"
 	"terrapak/internal/db/client"
 	"terrapak/internal/db/entity"
 
@@ -17,7 +15,7 @@ type Table interface {
 
 func Start() {
 	client.CreateDBIfNotExists()
-	gc := config.GetDefault()
+	//gc := config.GetDefault()
 	client := client.NewDBClient()
 	// Migrate tables on startup
 	tables := []Table{
@@ -32,9 +30,9 @@ func Start() {
 		table.Up(client)
 	}
 
-	if gc.AuthProvider.Type == "pat" || gc.AuthProvider.Type == "PAT" {
-		pat.CreateDefaultPAT(client)
-	}
+	// if gc.AuthProvider.Type == "pat" || gc.AuthProvider.Type == "PAT" {
+	// 	pat.CreateDefaultPAT(client)
+	// }
 	
 
 }

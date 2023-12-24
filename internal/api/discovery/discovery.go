@@ -3,8 +3,8 @@ package discovery
 import "github.com/gin-gonic/gin"
 
 type ServiceDescovery struct {
-	Modules   string      `json:"modules.v1"`
-	Login     AuthSchema `json:"login.v1"`
+	Modules   string      `json:"modules.v1,omitempty"`
+	Login     AuthSchema `json:"login.v1,omitempty"`
 }
 
 type AuthSchema struct {
@@ -20,9 +20,10 @@ func Serve(c *gin.Context) {
 	sd := ServiceDescovery{}
 	sd.Modules = "/v1/modules"
 	login.Client = "terraform-cli"
-	login.GrantTypes = []string{"authorization_code"}
+	login.GrantTypes = []string{"authz_code"}
 	login.Authz = "/v1/auth/authorize"
 	login.Token = "/v1/auth/token"
-	// sd.Login = login
+	sd.Login = login
+	sd.Login.Ports = []int{10000,10010}
 	c.JSON(200, sd)
 }

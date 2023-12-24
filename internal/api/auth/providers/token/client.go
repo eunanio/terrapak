@@ -1,4 +1,4 @@
-package pat
+package token
 
 import (
 	"terrapak/internal/api/auth/roles"

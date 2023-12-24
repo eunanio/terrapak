@@ -20,10 +20,13 @@ const (
 	ENV_TP_AUTH_TYPE 	  = "TP_AUTH_TYPE"
 	ENV_TP_AUTH_CLIENT_ID = "TP_AUTH_CLIENT_ID"
 	ENV_TP_AUTH_SECRET 	  = "TP_AUTH_SECRET"
+	ENV_TP_GITHUB_ORG 	  = "TP_GITHUB_ORG"
 	ENV_TP_BUCKET 		  = "TP_BUCKET"
 	ENV_CONFIG_FILE 	  = "TP_CONFIG_FILE"
 	ENV_STORAGE_PATH 	  = "TP_STORAGE"
 	ENV_ORGANIZATION 	  = "TP_ORGANIZATION"
+	ENV_TP_USER 		  = "TP_USER"
+	ENV_TP_PASSWORD 	  = "TP_PASSWORD"
 )
 
 type Config struct {
@@ -38,6 +41,7 @@ type Config struct {
 
 type AuthProviderConfig struct {
 	Type 		 string `yaml:"type"`
+	Organization string `yaml:"organization"`
 	ClientSecret string `yaml:"client_secret"`
 	ClientId 	 string `yaml:"client_id"`
 }
@@ -85,10 +89,6 @@ func validate(c *Config){
 		panic("hostname is required, either in config file or env")
 	}
 
-	if c.BucketName == "" {
-		panic("bucket name is required, either in config file or env")
-	}
-
 	if c.Database.Hostname == "" {
 		panic("database hostname is required, either in config file or env")
 	}
@@ -105,12 +105,16 @@ func validate(c *Config){
 		panic("auth type is required, either in config file or env")
 	}
 
-	if c.AuthProvider.Type == "oauth" && c.AuthProvider.ClientId == "" {
+	if c.AuthProvider.Type == "github" && c.AuthProvider.ClientId == "" {
 		panic("auth client id is required for oauth type, please set it in config file or env")
 	}
 
-	if c.AuthProvider.Type == "oauth" && c.AuthProvider.ClientSecret == "" {
+	if c.AuthProvider.Type == "github" && c.AuthProvider.ClientSecret == "" {
 		panic("auth client secret is required for oauth type, please set it in config file or env")
+	}
+
+	if c.AuthProvider.Type != "github" && c.AuthProvider.Organization != "" {
+		panic("auth organization is only used for github auth type, please set it in config file or env")
 	}
 
 	if c.Organization == "" {
