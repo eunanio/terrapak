@@ -28,6 +28,7 @@ func Parse(c *gin.Context) (mid MID, err error){
 	mid.Provider = c.Param("provider")
 	mid.Namespace = c.Param("namespace")
 	mid.Version = c.Param("version")
+	fmt.Println(mid)
 	if mid.Version != "" {
 		mid.Version = buildVersion(mid.Version)
 	}
@@ -48,10 +49,7 @@ func validate(mid MID) error {
 	if mid.Namespace == "" {
 		return fmt.Errorf("[mid parsing error]: namespace is empty")
 	}
-
-	if mid.Version == "" {
-		return fmt.Errorf("[mid parsing error]: version is empty")
-	}
+	
 	return nil
 }
 

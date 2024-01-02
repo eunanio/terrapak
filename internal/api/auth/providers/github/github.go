@@ -1,7 +1,12 @@
 package github
 
 import (
+	"encoding/json"
+	"fmt"
+	"terrapak/internal/api/auth/providers/types"
 	"terrapak/internal/config"
+
+	"net/http"
 
 	"golang.org/x/oauth2"
 )
@@ -23,7 +28,7 @@ func (GithubProvider) Name() string {
 
 func (g GithubProvider) Config() (conf oauth2.Config) {
 	gc := config.GetDefault()
-	scopes := []string{"user"}
+	scopes := []string{"user","user:email"}
 
 	if gc.AuthProvider.Organization != "" {
 		scopes = append(scopes, "read:org")
@@ -41,6 +46,28 @@ func (g GithubProvider) Config() (conf oauth2.Config) {
 	return conf
 }
 
-func (GithubProvider) UserInfo(token string) (string, error) {
-	return "", nil
+func (GithubProvider) Authenticate(token string) {}
+
+func (GithubProvider) UserInfo(token string) (types.UserInfo,error) {
+	req, err := http.NewRequest("GET", "https://api.github.com/user", nil); if err != nil {
+		fmt.Println(err)
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req); if err != nil {
+		fmt.Println(err)
+		return	types.UserInfo{}, err
+	}
+	defer resp.Body.Close()
+
+	var userInfo types.UserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		fmt.Println(err)
+		return userInfo, err
+	}
+
+	fmt.Println(userInfo)
+
+	return userInfo,nil
 }

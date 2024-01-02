@@ -27,3 +27,9 @@ func (os *OrganizationService) UpdateName(id uuid.UUID, name string) {
 		fmt.Println("Error: Organization not found when attempting to update name")
 	}
 }
+
+func (os *OrganizationService) FindByName(name string) (organization entity.Organization) {
+	client := client.Default()
+	client.Raw("SELECT * FROM organizations WHERE name = ?",name).Scan(&organization)
+	return organization
+}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
-	"terrapak/internal/storage/providers/shared"
 	"time"
 
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
@@ -74,12 +73,11 @@ func (p *S3Provider) Upload(mid mid.MID, data []byte) error {
 }
 
 func (p *S3Provider) Download(mid mid.MID) (url string, err error) {
-	prefix, filename := shared.BuldPathValues(mid)
 	gc := config.GetDefault()
 	ctx := context.TODO()
-	key := fmt.Sprintf("%s/%s",prefix,filename)
+	key := mid.Filepath()
 
-	return getPresignUrl(gc.BucketName,key,ctx,p.Client)
+	return getPresignUrl(gc.StorageSource.Path,key,ctx,p.Client)
 }
 
 func (p *S3Presign) setPresignOptions(options *s3.PresignOptions) {
@@ -128,12 +126,12 @@ func (p *S3Provider) Delete(mid mid.MID) error {
 	client := p.Client
 	gc := config.GetDefault()
 	S3Client := client.Client
-	prefix, filename := shared.BuldPathValues(mid)
 	ctx := context.TODO()
-	key := fmt.Sprintf("%s/%s",prefix,filename)
+	key := mid.Filepath()
+
 
 	_, err := S3Client.DeleteObject(ctx,&s3.DeleteObjectInput{
-		Bucket: &gc.BucketName,
+		Bucket: &gc.StorageSource.Path,
 		Key:    &key,
 	})
 

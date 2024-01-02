@@ -1,12 +1,16 @@
 package entity
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type ApiKeys struct {
 	ModelBase
 	Name  string `json:"name"`
 	Token string `json:"key"`
 	Role  int    `json:"role"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 func (ApiKeys) TableName() string {

@@ -7,7 +7,11 @@ import (
 	"fmt"
 	"strings"
 	"terrapak/internal/api/auth/providers/github"
+	"terrapak/internal/api/auth/providers/types"
+	"terrapak/internal/api/auth/roles"
 	"terrapak/internal/config"
+	"terrapak/internal/db/entity"
+	"terrapak/internal/db/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,13 +26,15 @@ var (
 type AuthProvider interface{
 	Name() string
 	Config() (conf oauth2.Config)
+	Authenticate(token string)
+	UserInfo(token string) (types.UserInfo,error)
 }
 
 type OAuthToken struct {
 	AccessToken string `json:"access_token"`
 }
 
-func getAuthProvider() AuthProvider {
+func GetAuthProvider() AuthProvider {
 	gc := config.GetDefault()
 	switch gc.AuthProvider.Type {
 		case "github":
@@ -47,7 +53,7 @@ func Authorize(c *gin.Context) {
 	state := uuid.New().String()
 	// sessions.Set("state", state)
 	redirect := fmt.Sprintf("https://%s/v1/auth/callback", gc.Hostname)
-	provider := getAuthProvider()
+	provider := GetAuthProvider()
 
 	conf := provider.Config()
 	conf.RedirectURL = redirect
@@ -71,7 +77,7 @@ func Callback(c *gin.Context) {
 	// 	return
 	// }
 	gc := config.GetDefault()
-	provider := getAuthProvider()
+	provider := GetAuthProvider()
 	conf := provider.Config()
 	token, err := conf.Exchange(c, c.Query("code"), oauth2.SetAuthURLParam("code_verifier", codeVerifier)); if err != nil {
 		c.JSON(401, gin.H{
@@ -79,6 +85,15 @@ func Callback(c *gin.Context) {
 		})
 		return
 	}
+	
+	// claims, err := jwt.DecodeJWT(token.AccessToken); if err != nil {
+	// 	c.JSON(401, gin.H{
+	// 		"error": err.Error(),
+	// 	})
+	// 	return
+	// }
+	// fmt.Println(claims)
+	syncUserAccounts(token.AccessToken)
 	c.Data(200, "text/html; charset=utf-8", []byte(fmt.Sprintf("export TF_TOKEN_%s=%s </br></br>Set this if terraform fails to detect the callback",buildSafeHostname(gc.Hostname), token.AccessToken)))
 }
 
@@ -95,4 +110,28 @@ func generateCodeChallenge(verifier string) string {
 
 func buildSafeHostname(hostname string) string {
 	return strings.ReplaceAll(hostname, ".", "_")
+}
+
+func syncUserAccounts(access_token string){
+	provider := GetAuthProvider()
+	us := &services.UserService{}
+	info, err := provider.UserInfo(access_token); if err != nil {
+		fmt.Println(err)
+		return
+	 }
+
+	 fmt.Println(info)
+	 user := us.FindByExternalID(fmt.Sprintf("%d", info.ID))
+	 if user == nil {
+		user = &entity.User{}
+		user.Email = ""
+		user.AuthorityID = fmt.Sprintf("%d", info.ID)
+		user.Name = info.Name
+		user.Role = roles.Editor
+		us.Create(*user)
+
+	 }
+
+	 fmt.Println(user)
+	 
 }

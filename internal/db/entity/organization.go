@@ -23,7 +23,7 @@ func (o *Organization) Up(client *gorm.DB) {
 }
 
 func (o *Organization) Create(client *gorm.DB) {
-	client.Create(o)
+	 client.Create(o)
 }
 
 func (o *Organization) Read(client *gorm.DB, id uuid.UUID) (organization *Organization) {
