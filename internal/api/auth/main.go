@@ -6,8 +6,13 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/providers/github"
+	"terrapak/internal/api/auth/roles"
+	"terrapak/internal/api/auth/types"
 	"terrapak/internal/config"
+	"terrapak/internal/db/entity"
+	"terrapak/internal/db/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,13 +27,15 @@ var (
 type AuthProvider interface{
 	Name() string
 	Config() (conf oauth2.Config)
+	Authenticate(token string)
+	UserInfo(token string) (types.UserInfo,error)
 }
 
 type OAuthToken struct {
 	AccessToken string `json:"access_token"`
 }
 
-func getAuthProvider() AuthProvider {
+func GetAuthProvider() AuthProvider {
 	gc := config.GetDefault()
 	switch gc.AuthProvider.Type {
 		case "github":
@@ -47,7 +54,7 @@ func Authorize(c *gin.Context) {
 	state := uuid.New().String()
 	// sessions.Set("state", state)
 	redirect := fmt.Sprintf("https://%s/v1/auth/callback", gc.Hostname)
-	provider := getAuthProvider()
+	provider := GetAuthProvider()
 
 	conf := provider.Config()
 	conf.RedirectURL = redirect
@@ -71,7 +78,7 @@ func Callback(c *gin.Context) {
 	// 	return
 	// }
 	gc := config.GetDefault()
-	provider := getAuthProvider()
+	provider := GetAuthProvider()
 	conf := provider.Config()
 	token, err := conf.Exchange(c, c.Query("code"), oauth2.SetAuthURLParam("code_verifier", codeVerifier)); if err != nil {
 		c.JSON(401, gin.H{
@@ -79,7 +86,22 @@ func Callback(c *gin.Context) {
 		})
 		return
 	}
-	c.Data(200, "text/html; charset=utf-8", []byte(fmt.Sprintf("export TF_TOKEN_%s=%s </br></br>Set this if terraform fails to detect the callback",buildSafeHostname(gc.Hostname), token.AccessToken)))
+	
+	// claims, err := jwt.DecodeJWT(token.AccessToken); if err != nil {
+	// 	c.JSON(401, gin.H{
+	// 		"error": err.Error(),
+	// 	})
+	// 	return
+	// }
+	// fmt.Println(claims)
+	api_token := syncUserAccounts(token.AccessToken); if api_token == "" {
+		c.JSON(401, gin.H{
+			"error": "Unable to sync user accounts",
+		})
+		return
+	}
+
+	c.Data(200, "text/html; charset=utf-8", []byte(fmt.Sprintf("export TF_TOKEN_%s=%s </br></br>Set this if terraform fails to detect the callback",buildSafeHostname(gc.Hostname), api_token)))
 }
 
 func generateCodeVerifier() string {
@@ -95,4 +117,48 @@ func generateCodeChallenge(verifier string) string {
 
 func buildSafeHostname(hostname string) string {
 	return strings.ReplaceAll(hostname, ".", "_")
+}
+
+func syncUserAccounts(access_token string) string {
+	provider := GetAuthProvider()
+	us := &services.UserService{}
+	info, err := provider.UserInfo(access_token); if err != nil {
+		fmt.Println(err)
+		return ""
+	 }
+
+	 fmt.Println(info)
+	 user := us.FindByExternalID(fmt.Sprintf("%d", info.ID))
+	 if user == nil {
+		user = &entity.User{}
+		user.Email = ""
+		user.AuthorityID = fmt.Sprintf("%d", info.ID)
+		user.Name = info.Name
+		user.Role = roles.Editor
+		user = us.Create(*user)
+	 }
+
+	 token, err := generateApiToken(user); if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return token
+}
+
+func generateApiToken(user *entity.User) (string, error) {
+	us := &services.UserService{}
+	us.RemoveApiKeys(user.ID)
+	token, err := jwt.GenerateJWT(user.ID.String(), user.Role); if err != nil {
+		return "", err
+	}
+	key	:= &entity.ApiKeys{}
+	key.Name = fmt.Sprintf("%s-apikey", user.Name)
+	key.Token = config.HashSecret(token)
+	key.Role = int(user.Role)
+	key.UserID = user.ID
+	us.CreateApiKey(*key)
+
+
+	return token, nil
 }

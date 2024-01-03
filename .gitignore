@@ -1,5 +1,5 @@
 ngrok
-start_ngrok.sh
 config.yml
 .env
 compose.yml
+/internal/api/auth/providers/token

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"terrapak/internal/db/client"
 	"terrapak/internal/db/entity"
+	"terrapak/internal/db/jobs"
 
 	"gorm.io/gorm"
 )
@@ -14,9 +15,9 @@ type Table interface {
 }
 
 func Start() {
-	client.CreateDBIfNotExists()
+	jobs.CreateDBIfNotExists()
 	//gc := config.GetDefault()
-	client := client.NewDBClient()
+	db_client := client.NewDBClient()
 	// Migrate tables on startup
 	tables := []Table{
 		&entity.User{},
@@ -27,12 +28,9 @@ func Start() {
 
 	for _, table := range tables {
 		fmt.Printf("[SETUP] - migrating %s table\n", table.TableName())
-		table.Up(client)
+		table.Up(db_client)
 	}
 
-	// if gc.AuthProvider.Type == "pat" || gc.AuthProvider.Type == "PAT" {
-	// 	pat.CreateDefaultPAT(client)
-	// }
-	
-
+	jobs.CreateDefaultOrganizationIfNotExists()
+	jobs.CreateAdminUserIfNotExists()
 }

@@ -19,7 +19,7 @@ func NewClient(protocol string) StorageProvider {
 	switch protocol {
 		case "s3":
 			return s3.NewProvider()
-		case "local":
+		case "mnt":
 			return local.NewProvider()
 		default:
 			panic("invalid protocol")

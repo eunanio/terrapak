@@ -49,21 +49,3 @@ func setDefaultDBClient(client *gorm.DB) {
 func Default() *gorm.DB {
 	return defaultDbClient
 }
-
-func CreateDBIfNotExists() {
-	client := NewDBServerClient()
-	var results []DBResult
-	client.Raw(fmt.Sprintf("select * from pg_database where datname = '%s'", DB_NAME)).Scan(&results)
-
-	if len(results) == 0 {
-		fmt.Println("[SETUP] - DB missing.. creating")
-		client.Exec(fmt.Sprintf("CREATE DATABASE %s", DB_NAME))
-		client.Raw(fmt.Sprintf("select * from pg_database where datname = '%s'", DB_NAME)).Scan(&results)
-		if len(results) > 0 {
-			fmt.Println("[SETUP] - database created")
-		} else {
-			panic("ERROR: Cannot create database")
-
-		}
-	}
-}

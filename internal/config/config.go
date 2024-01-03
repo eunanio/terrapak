@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"terrapak/internal/api/metadata"
 
 	"gopkg.in/yaml.v2"
@@ -21,17 +22,16 @@ const (
 	ENV_TP_AUTH_CLIENT_ID = "TP_AUTH_CLIENT_ID"
 	ENV_TP_AUTH_SECRET 	  = "TP_AUTH_SECRET"
 	ENV_TP_GITHUB_ORG 	  = "TP_GITHUB_ORG"
-	ENV_TP_BUCKET 		  = "TP_BUCKET"
 	ENV_CONFIG_FILE 	  = "TP_CONFIG_FILE"
 	ENV_STORAGE_PATH 	  = "TP_STORAGE"
 	ENV_ORGANIZATION 	  = "TP_ORGANIZATION"
 	ENV_TP_USER 		  = "TP_USER"
 	ENV_TP_PASSWORD 	  = "TP_PASSWORD"
+	ENV_TP_ROLES 		  = "TP_ROLES"
 )
 
 type Config struct {
 	Hostname 	 string `yaml:"hostname"`
-	BucketName   string `yaml:"bucket"`
 	Organization string `yaml:"organization"`
 	StoragePath  string `yaml:"storage"`
 	Database 	 DatabaseConfig `yaml:"database"`
@@ -40,10 +40,11 @@ type Config struct {
 }
 
 type AuthProviderConfig struct {
-	Type 		 string `yaml:"type"`
-	Organization string `yaml:"organization"`
-	ClientSecret string `yaml:"client_secret"`
-	ClientId 	 string `yaml:"client_id"`
+	Type 		 string 	`yaml:"type"`
+	RoleByEmail  []string   `yaml:"role_by_email"`
+	Organization string 	`yaml:"organization"`
+	ClientSecret string 	`yaml:"client_secret"`
+	ClientId 	 string 	`yaml:"client_id"`
 }
 
 type DatabaseConfig struct {
@@ -129,44 +130,67 @@ func GetDefault() *Config {
 
 func setupEnvs(c *Config){
 
-	_, exists := os.LookupEnv(ENV_DB_HOST); if !exists {
-		os.Setenv(ENV_DB_HOST, c.Database.Hostname)
+	_, configFileSet := os.LookupEnv(ENV_CONFIG_FILE)
+
+	val, exists := os.LookupEnv(ENV_DB_HOST)
+	
+	if exists && !configFileSet {
+		c.Database.Hostname = val
 	}
 
-	_, exists = os.LookupEnv(ENV_DB_USER); if !exists {
-		os.Setenv(ENV_DB_USER, c.Database.Username)
+	val, exists = os.LookupEnv(ENV_DB_USER)
+	
+	if exists && !configFileSet {
+		c.Database.Username = val
 	}
 
-	_, exists = os.LookupEnv(ENV_DB_PASS); if !exists {
-		os.Setenv(ENV_DB_PASS, c.Database.Password)
+	val, exists = os.LookupEnv(ENV_DB_PASS)
+	
+	if exists && !configFileSet {
+		c.Database.Password = val
 	}
 
-	_, exists = os.LookupEnv(ENV_TP_HOST); if !exists {
-		os.Setenv(ENV_TP_HOST, c.Hostname)
+	val, exists = os.LookupEnv(ENV_TP_HOST)
+	
+	if exists && !configFileSet {
+		c.Hostname = val
 	}
 
-	_, exists = os.LookupEnv(ENV_TP_AUTH_TYPE); if !exists {
-		os.Setenv(ENV_TP_AUTH_TYPE, c.AuthProvider.Type)
+	val, exists = os.LookupEnv(ENV_TP_AUTH_TYPE)
+
+	if exists && !configFileSet {
+		c.AuthProvider.Type = val
 	}
 
-	_, exists = os.LookupEnv(ENV_TP_AUTH_CLIENT_ID); if !exists {
-		os.Setenv(ENV_TP_AUTH_CLIENT_ID, c.AuthProvider.ClientId)
+	val, exists = os.LookupEnv(ENV_TP_AUTH_CLIENT_ID)
+
+	if exists && !configFileSet {
+		c.AuthProvider.ClientId = val
 	}
 
-	_, exists = os.LookupEnv(ENV_TP_AUTH_SECRET); if !exists {
-		os.Setenv(ENV_TP_AUTH_SECRET, c.AuthProvider.ClientSecret)
+	val, exists = os.LookupEnv(ENV_TP_AUTH_SECRET)
+
+	if exists && !configFileSet {
+		c.AuthProvider.ClientSecret = val
 	}
 
-	_, exists = os.LookupEnv(ENV_TP_BUCKET); if !exists {
-		os.Setenv(ENV_TP_BUCKET, c.BucketName)
+	val, exists = os.LookupEnv(ENV_STORAGE_PATH)
+
+	if exists && !configFileSet {
+		c.StoragePath = val
 	}
 
-	_, exists = os.LookupEnv(ENV_STORAGE_PATH); if !exists {
-		os.Setenv(ENV_STORAGE_PATH, c.StoragePath)
+	val, exists = os.LookupEnv(ENV_TP_ROLES)
+
+	if exists && !configFileSet {
+		c.AuthProvider.RoleByEmail = strings.Split(val, ",")
 	}
 
-	_, exists = os.LookupEnv(ENV_ORGANIZATION); if !exists {
-		os.Setenv(ENV_ORGANIZATION, c.Organization)
+
+	val, exists = os.LookupEnv(ENV_ORGANIZATION)
+
+	if exists && !configFileSet {
+		c.Organization = val
 	}
 
 	if c.Organization == "" {

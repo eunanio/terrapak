@@ -1,10 +1,13 @@
 package local
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
+
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -25,10 +28,13 @@ func NewProvider() *LocalProvider {
 }
 
 func (p *LocalProvider) Type() string {
-	return "local"
+	return "mnt"
 }
 
 func (p *LocalProvider) Download(mid mid.MID) (url string, err error) {
+	gc := config.GetDefault()
+	path := filepath.Join(gc.StorageSource.Path,WORKING_PATH, mid.Path())
+	fmt.Println(path)
 	return "", nil
 }
 
@@ -50,4 +56,8 @@ func (p *LocalProvider) Upload(mid mid.MID, data []byte) error {
 
 func (p *LocalProvider) Delete(mid mid.MID) error {
 	return nil
+}
+
+func ServeLocalFile(c *gin.Context){
+	
 }

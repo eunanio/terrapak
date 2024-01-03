@@ -12,7 +12,7 @@ type StorageSource struct {
 }
 
 var (
-	supportedProtocols = []string{"file", "s3"}
+	supportedProtocols = []string{"mnt", "s3"}
 )
 
 func NewStorageSoruce(soruce string) (StorageSource, error) {

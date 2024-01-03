@@ -74,14 +74,12 @@ func Download(c *gin.Context) {
 func Read(c *gin.Context) {
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		errResposne := metadata.ApiResponse{Code: 400, Message: err.Error()}
-		c.JSON(400,errResposne)
+		c.JSON(400,metadata.NewApiResponse(400, err.Error()))
 		return
 	}
 
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		errResposne := metadata.ApiResponse{Code: 404, Message: "module not found"}
-		c.JSON(404,errResposne)
+		c.JSON(404,metadata.NewApiResponse(404, "module not found"))
 		return
 	}
 
@@ -92,15 +90,16 @@ func Versions(c *gin.Context) {
 	moduleDTO := ModuleDTO{}
 	moduleVersionsDTO := []ModuleVersionsDTO{}
 	versionDTO := []VersionDTO{}
-
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
+		fmt.Println(err)
 		errResposne := metadata.ApiResponse{Code: 400, Message: err.Error()}
 		c.JSON(400,errResposne)
 		return
 	}
 	
 	list := ms.FindAll(m)
+	fmt.Println(list)
 	if len(list) == 0 {
 		err := metadata.ApiResponse{Code: 404, Message: "module not found"}
 		c.JSON(404,err)
@@ -123,14 +122,12 @@ func RemoveDraft(c *gin.Context) {
 	m := mid.MID{}
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		errResposne := metadata.ApiResponse{Code: 400, Message: "Error Parsing MID"}
-		c.JSON(400,errResposne)
+		c.JSON(400,metadata.NewApiResponse(400, "Error Parsing MID"))
 		return
 	}
 
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		errResposne := metadata.ApiResponse{Code: 404, Message: "Module not found"}
-		c.JSON(404,errResposne)
+		c.JSON(404,metadata.NewApiResponse(404, "Module not found"))
 		return
 	}
 
@@ -138,8 +135,7 @@ func RemoveDraft(c *gin.Context) {
 		if module.PublishedAt.Year() < 2000 {
 			ms.Remove(m)
 			storageClient.Delete(m)
-			response := metadata.ApiResponse{Code: 200, Message: "Module deleted"}
-			c.JSON(200,response)
+			c.JSON(200,metadata.NewApiResponse(200,"Module deleted"))
 		}
 	}
 }
@@ -148,13 +144,11 @@ func PublishDraft(c *gin.Context) {
 	m := mid.MID{}
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		errResposne := metadata.ApiResponse{Code: 400, Message: err.Error()}
-		c.JSON(400,errResposne)
+		c.JSON(400,metadata.NewApiResponse(400, err.Error()))
 		return
 	}
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		errResposne := metadata.ApiResponse{Code: 404, Message: "Module not found"}
-		c.JSON(404,errResposne)
+		c.JSON(404,metadata.NewApiResponse(404, "Module not found"))
 		return
 	}
 
