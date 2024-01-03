@@ -32,13 +32,13 @@ func CreateAdminUserIfNotExists() {
 	var count int64
 	userEnv, ext := os.LookupEnv(config.ENV_TP_USER)
 	if !ext {
-		panic("TP_USER env var not set")
+		panic("TP_USER var not set")
 		
 	}
 
 	passwordEnv, ext := os.LookupEnv(config.ENV_TP_PASSWORD)
 	if !ext {
-		panic("TP_PASSWORD env var not set")
+		panic("TP_PASSWORD var not set")
 	}
 
 	client := client.NewDBClient()

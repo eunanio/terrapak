@@ -29,12 +29,13 @@ func (u *User) Up(client *gorm.DB) {
 	}
 }
 
-func (u *User) Create(client *gorm.DB) {
+func (u *User) Create(client *gorm.DB) *User  {
 	client.Create(u)
+	return u
 }
 
-func (u *User) Read(client *gorm.DB, email string) (user *User) {
-	client.Where("token = ?", email).First(&user)
+func (u *User) Read(client *gorm.DB, id uuid.UUID) (user *User) {
+	client.Where("ID = ?", id).First(&user)
 	return user
 }
 

@@ -8,7 +8,6 @@ import (
 type Organization struct {
 	ModelBase
 	Name string `json:"name"`
-	Members []*User `json:"members" gorm:"many2many:organization_members;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 func (Organization) TableName() string {

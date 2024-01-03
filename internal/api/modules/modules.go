@@ -90,7 +90,6 @@ func Versions(c *gin.Context) {
 	moduleDTO := ModuleDTO{}
 	moduleVersionsDTO := []ModuleVersionsDTO{}
 	versionDTO := []VersionDTO{}
-
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
 		fmt.Println(err)

@@ -9,10 +9,9 @@ type UserRoles int
 
 const (
 	Default UserRoles = iota
-	Owner
-	Editor
 	Reader
-	Invalid
+	Editor
+	Owner
 )
 
 const (
@@ -36,7 +35,7 @@ func (role UserRoles) String() string {
 	}
 }
 
-func (role UserRoles) Parse(name string) UserRoles {
+func Parse(name string) UserRoles {
 	switch name {
 	case owner_name:
 		return Owner
@@ -61,7 +60,7 @@ func ParseEmailRoles(role_by_email string) (email string, role UserRoles, err er
 	items := strings.Split(":",role_by_email)
 	if len(items) == 2 {
 		email = items[0]
-		role = role.Parse(items[1])
+		role = Parse(items[1])
 		return email, role, nil
 	}
 

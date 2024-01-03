@@ -6,9 +6,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/providers/github"
-	"terrapak/internal/api/auth/providers/types"
 	"terrapak/internal/api/auth/roles"
+	"terrapak/internal/api/auth/types"
 	"terrapak/internal/config"
 	"terrapak/internal/db/entity"
 	"terrapak/internal/db/services"
@@ -93,8 +94,14 @@ func Callback(c *gin.Context) {
 	// 	return
 	// }
 	// fmt.Println(claims)
-	syncUserAccounts(token.AccessToken)
-	c.Data(200, "text/html; charset=utf-8", []byte(fmt.Sprintf("export TF_TOKEN_%s=%s </br></br>Set this if terraform fails to detect the callback",buildSafeHostname(gc.Hostname), token.AccessToken)))
+	api_token := syncUserAccounts(token.AccessToken); if api_token == "" {
+		c.JSON(401, gin.H{
+			"error": "Unable to sync user accounts",
+		})
+		return
+	}
+
+	c.Data(200, "text/html; charset=utf-8", []byte(fmt.Sprintf("export TF_TOKEN_%s=%s </br></br>Set this if terraform fails to detect the callback",buildSafeHostname(gc.Hostname), api_token)))
 }
 
 func generateCodeVerifier() string {
@@ -112,12 +119,12 @@ func buildSafeHostname(hostname string) string {
 	return strings.ReplaceAll(hostname, ".", "_")
 }
 
-func syncUserAccounts(access_token string){
+func syncUserAccounts(access_token string) string {
 	provider := GetAuthProvider()
 	us := &services.UserService{}
 	info, err := provider.UserInfo(access_token); if err != nil {
 		fmt.Println(err)
-		return
+		return ""
 	 }
 
 	 fmt.Println(info)
@@ -128,10 +135,30 @@ func syncUserAccounts(access_token string){
 		user.AuthorityID = fmt.Sprintf("%d", info.ID)
 		user.Name = info.Name
 		user.Role = roles.Editor
-		us.Create(*user)
-
+		user = us.Create(*user)
 	 }
 
-	 fmt.Println(user)
-	 
+	 token, err := generateApiToken(user); if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return token
+}
+
+func generateApiToken(user *entity.User) (string, error) {
+	us := &services.UserService{}
+	us.RemoveApiKeys(user.ID)
+	token, err := jwt.GenerateJWT(user.ID.String(), user.Role); if err != nil {
+		return "", err
+	}
+	key	:= &entity.ApiKeys{}
+	key.Name = fmt.Sprintf("%s-apikey", user.Name)
+	key.Token = config.HashSecret(token)
+	key.Role = int(user.Role)
+	key.UserID = user.ID
+	us.CreateApiKey(*key)
+
+
+	return token, nil
 }

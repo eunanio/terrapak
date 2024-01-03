@@ -3,7 +3,7 @@ package github
 import (
 	"encoding/json"
 	"fmt"
-	"terrapak/internal/api/auth/providers/types"
+	"terrapak/internal/api/auth/types"
 	"terrapak/internal/config"
 
 	"net/http"
@@ -28,7 +28,7 @@ func (GithubProvider) Name() string {
 
 func (g GithubProvider) Config() (conf oauth2.Config) {
 	gc := config.GetDefault()
-	scopes := []string{"user","user:email"}
+	scopes := []string{"user"}
 
 	if gc.AuthProvider.Organization != "" {
 		scopes = append(scopes, "read:org")

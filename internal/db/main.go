@@ -33,8 +33,4 @@ func Start() {
 
 	jobs.CreateDefaultOrganizationIfNotExists()
 	jobs.CreateAdminUserIfNotExists()
-
-	// if gc.AuthProvider.Type == "pat" || gc.AuthProvider.Type == "PAT" {
-	// 	pat.CreateDefaultPAT(client)
-	// }
 }

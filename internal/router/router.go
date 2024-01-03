@@ -8,17 +8,13 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func Start() {
-	err := godotenv.Load(); if err != nil {
-		panic("Error loading .env file")
-	}
 
 	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
-	store, _ := redis.NewStore(10, "tcp","localhost:6379", "redis", []byte("iqjwjoidjwqh28eu282837982731jadhwahdiawhud"))
+	store, _ := redis.NewStore(10, "tcp","localhost:6379", "redis")
 	r.Use(sessions.Sessions("mysession", store))
 
 	r.GET("/ping", Ping)
