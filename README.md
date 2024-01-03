@@ -8,8 +8,8 @@ Terrapak is a Terraform module registry with the goal of making module version m
    ```bash
    docker run -v $(pwd)/config.yml:/app/config.yml -e CONFIG_PATH=/app/config.yml -p 5551:80 -d monoci/terrapak:v1
    ```
-4. Setup [Terrapak-Action](http://api.github.com) in your project
-5. Generate Credentials for Terrapak to use
+4. Setup [Terrapak-Action](https://github.com/eunanhardy/terrapak-action) in your project
+5. Generate Credentials for Github Actions & Terraform to use
    ```bash
    terraform login registry.host.io
    ```
