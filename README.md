@@ -1,15 +1,21 @@
 # Terrapak
-Terrapak is a Terraform module registry with the goal of making module version management easier. Terrapak integrates with your github pull requests to automatically publish new versions of your terraform modules.
+Terrapak is a version manager for Terraform modules. Terrapak integrates with your GitHub pull requests to automaticlly publish new versions of your Terraform modules to a private Terraform registry. 
 
-## How to setup
-1. create config file, see Docs
-2. Create a postgres & Redis instance for Terrapak to use
-3. Run the Terrapak server
-   ```bash
-   docker run -v $(pwd)/config.yml:/app/config.yml -e CONFIG_PATH=/app/config.yml -p 5551:80 -d monoci/terrapak:v1
-   ```
-4. Setup [Terrapak-Action](https://github.com/eunanhardy/terrapak-action) in your project
-5. Generate Credentials for Github Actions & Terraform to use
-   ```bash
-   terraform login registry.host.io
-   ```
+## Feature Overview
+- Automatic versioning of Terraform modules
+- Monorepo friendly CI/CD workflow
+- Supports S3 as storage backend
+- Automatic cleanup of draft modules when pull request is closed unsucessfully
+- Support Gtihub Organisations for Authorization
+
+
+### MVP for v1
+- [x] Github-driven automatic versioning of Terraform modules
+- [x] Support S3 as storage backend
+- [x] Support for future oauth2 providers
+- [ ] rule based assignment for RBAC users
+- [ ] Known issues
+
+
+> [!NOTE]  
+> This project is currently in development and not ready for production use.

@@ -1,22 +1,55 @@
 package middleware
 
 import (
-	"terrapak/internal/api/auth"
+	"fmt"
+	"slices"
+	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/roles"
+	"terrapak/internal/db/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-func HasAuthenticatedRole(role roles.UserRoles) gin.HandlerFunc {
+func HasAuthenticatedRole(roles ...roles.UserRoles) gin.HandlerFunc {
+	fmt.Println("HasAuthenticatedRole")
 	return func(c *gin.Context) {
-		authProvider := auth.GetAuthProvider()
-		token := c.GetHeader("Authorization")
-		if token == "" {
+		fmt.Println("HasAuthenticatedRole")
+		//authProvider := auth.GetAuthProvider()
+		authHeader := c.GetHeader("Authorization")
+		us := services.UserService{}
+		fmt.Println(authHeader)
+		if authHeader == "" {
+			fmt.Println("No Authorization header provided")
 			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 			return
 		}
-		authProvider.Authenticate(token)
 
+		token, err := jwt.ParseToken(c); if err != nil {
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+		claims,err := jwt.DecodeJWT(token); if err != nil {
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
 
+		user_id, err := uuid.Parse(claims["id"].(string)); if err != nil {
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+
+		user := us.Find(user_id)
+		if user == nil {
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+
+		if !slices.Contains(roles, user.Role) {
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+
+		c.Next()
 	}
 }

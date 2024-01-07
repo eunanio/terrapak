@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"terrapak/internal/api/metadata"
 	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
 	"terrapak/internal/db/entity"
@@ -43,7 +42,8 @@ func Upload(c *gin.Context) {
 	}
 	
 	file, err := c.FormFile("file"); if err != nil {
-		panic(err)
+		c.JSON(400, err)
+		return
 	}
 
 	src,_ := file.Open()
@@ -58,7 +58,7 @@ func Download(c *gin.Context) {
 	storageClient := storage.NewClient(gc.StorageSource.Protocol)
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400, err)
+		c.JSON(400,gin.H{"message": err.Error()})
 		return
 	}
 
@@ -74,12 +74,12 @@ func Download(c *gin.Context) {
 func Read(c *gin.Context) {
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400,metadata.NewApiResponse(400, err.Error()))
+		c.JSON(400,gin.H{"message": err.Error()})
 		return
 	}
 
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		c.JSON(404,metadata.NewApiResponse(404, "module not found"))
+		c.JSON(404,gin.H{"message": "Module not found"})
 		return
 	}
 
@@ -93,16 +93,14 @@ func Versions(c *gin.Context) {
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
 		fmt.Println(err)
-		errResposne := metadata.ApiResponse{Code: 400, Message: err.Error()}
-		c.JSON(400,errResposne)
+		c.JSON(400,gin.H{"message": err.Error()})
 		return
 	}
 	
 	list := ms.FindAll(m)
 	fmt.Println(list)
 	if len(list) == 0 {
-		err := metadata.ApiResponse{Code: 404, Message: "module not found"}
-		c.JSON(404,err)
+		c.JSON(404,gin.H{"message":"module not found"})
 		return
 	}
 
@@ -122,12 +120,12 @@ func RemoveDraft(c *gin.Context) {
 	m := mid.MID{}
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400,metadata.NewApiResponse(400, "Error Parsing MID"))
+		c.JSON(400,gin.H{"message": "Error parsing module id"})
 		return
 	}
 
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		c.JSON(404,metadata.NewApiResponse(404, "Module not found"))
+		c.JSON(404,gin.H{"message": "Module not found"})
 		return
 	}
 
@@ -135,7 +133,8 @@ func RemoveDraft(c *gin.Context) {
 		if module.PublishedAt.Year() < 2000 {
 			ms.Remove(m)
 			storageClient.Delete(m)
-			c.JSON(200,metadata.NewApiResponse(200,"Module deleted"))
+			c.JSON(200,gin.H{"message": "Module removed"})
+			return
 		}
 	}
 }
@@ -144,11 +143,11 @@ func PublishDraft(c *gin.Context) {
 	m := mid.MID{}
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400,metadata.NewApiResponse(400, err.Error()))
+		c.JSON(400,gin.H{"message": err.Error()})
 		return
 	}
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		c.JSON(404,metadata.NewApiResponse(404, "Module not found"))
+		c.JSON(404,gin.H{"message": "Module not found"})
 		return
 	}
 

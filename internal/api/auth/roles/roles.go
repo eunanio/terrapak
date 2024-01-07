@@ -57,7 +57,7 @@ func ParseEmailRoles(role_by_email string) (email string, role UserRoles, err er
 		return "",-1,fmt.Errorf("malformed role, Missing \":\"")
 	}
 
-	items := strings.Split(":",role_by_email)
+	items := strings.Split(role_by_email,":")
 	if len(items) == 2 {
 		email = items[0]
 		role = Parse(items[1])

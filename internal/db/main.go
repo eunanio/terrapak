@@ -32,5 +32,5 @@ func Start() {
 	}
 
 	jobs.CreateDefaultOrganizationIfNotExists()
-	jobs.CreateAdminUserIfNotExists()
+	//jobs.CreateAdminUserIfNotExists()
 }

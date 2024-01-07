@@ -2,11 +2,11 @@ package router
 
 import (
 	"terrapak/internal/api/auth"
+	"terrapak/internal/api/auth/roles"
 	"terrapak/internal/api/discovery"
+	"terrapak/internal/api/middleware"
 	"terrapak/internal/api/modules"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,9 +14,7 @@ func Start() {
 
 	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
-	store, _ := redis.NewStore(10, "tcp","localhost:6379", "redis")
-	r.Use(sessions.Sessions("mysession", store))
-
+	r.Use(middleware.HasAuthenticatedRole(roles.Editor))
 	r.GET("/ping", Ping)
 	moduleRouter := r.Group("v1/modules")
 	ApiRouter 	 := r.Group("v1/api")
@@ -51,6 +49,6 @@ func ApiRoutes(r *gin.RouterGroup) {
 
 func AuthRoutes(r *gin.RouterGroup) {
 	r.GET("/authorize", auth.Authorize)
-	r.GET("/token", auth.Token)
+	r.POST("/token", auth.Token)
 	r.GET("/callback", auth.Callback)
 }

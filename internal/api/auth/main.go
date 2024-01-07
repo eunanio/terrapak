@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/providers/github"
@@ -15,20 +17,28 @@ import (
 	"terrapak/internal/db/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"golang.org/x/oauth2"
+	"gopkg.in/boj/redistore.v1"
 )
 
 var (
-	codeVerifier = generateCodeVerifier()
-	codeChallenge = generateCodeChallenge(codeVerifier)
+	// codeVerifier = generateCodeVerifier()
+	//codeChallenge = generateCodeChallenge(codeVerifier)
 )
 
-type AuthProvider interface{
+type AuthProvider interface {
 	Name() string
 	Config() (conf oauth2.Config)
-	Authenticate(token string)
+	Callback(token string)
+	UserEmail(token string) (string,error)
 	UserInfo(token string) (types.UserInfo,error)
+}
+
+type TokenRequest struct {
+	Code string `json:"code" form:"code"`
+	ClientID string `json:"client_id" form:"client_id"`
+	CodeVerifier string `json:"code_verifier" form:"code_verifier"`
+	GrantType string `json:"grant_type" form:"grant_type"`
 }
 
 type OAuthToken struct {
@@ -49,51 +59,52 @@ func GetAuthProvider() AuthProvider {
 
 func Authorize(c *gin.Context) {
 	//..
-	//sessions := sessions.Default(c)
+	store, err := redistore.NewRediStore(10, "tcp", ":6379", "", []byte(os.Getenv("TP_SECRET"))); if err != nil {
+		c.JSON(500, gin.H{
+			"redis_error": err.Error(),
+		})
+		return
+	}
 	gc := config.GetDefault()
-	state := uuid.New().String()
-	// sessions.Set("state", state)
-	redirect := fmt.Sprintf("https://%s/v1/auth/callback", gc.Hostname)
+	
+	sessions, _ := store.Get(c.Request, "mysession")
+	sessions.Options.MaxAge = 60 * 2
+	state := c.Query("state")
+	sessions.Values["state"] = state
+
+	redirect := c.Query("redirect_uri")
+	sessions.Values["redirect_uri"] = redirect
+
 	provider := GetAuthProvider()
+	sessions.Save(c.Request, c.Writer)
 
 	conf := provider.Config()
-	conf.RedirectURL = redirect
-	url := conf.AuthCodeURL(state,oauth2.SetAuthURLParam("code_challenge", codeChallenge),oauth2.SetAuthURLParam("code_challenge_method", "S256"))
+	conf.RedirectURL = fmt.Sprintf("https://%s/v1/auth/callback", gc.Hostname)
+	url := conf.AuthCodeURL(state,oauth2.SetAuthURLParam("code_challenge", c.Query("code_challenge")),oauth2.SetAuthURLParam("code_challenge_method", "S256"))
 	c.Redirect(302, url)
 }
 
 func Token(c *gin.Context) {
-	//..
-}
+	tokenRequest := TokenRequest{}
+	err := c.Bind(&tokenRequest); if err != nil {
+		if e, ok := err.(*json.SyntaxError); ok {
+			fmt.Printf("syntax error at byte offset %d", e.Offset)
+		}
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
-func Callback(c *gin.Context) {
-	//..
-	// sessions := sessions.Default(c)
-	// state := sessions.Get("state")
-	// fmt.Println(state)
-	// if state != c.Query("state") {
-	// 	c.JSON(401, gin.H{
-	// 		"error": "Invalid state",
-	// 	})
-	// 	return
-	// }
-	gc := config.GetDefault()
 	provider := GetAuthProvider()
 	conf := provider.Config()
-	token, err := conf.Exchange(c, c.Query("code"), oauth2.SetAuthURLParam("code_verifier", codeVerifier)); if err != nil {
+	token, err := conf.Exchange(c, tokenRequest.Code, oauth2.SetAuthURLParam("code_verifier", tokenRequest.CodeVerifier)); if err != nil {
 		c.JSON(401, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 	
-	// claims, err := jwt.DecodeJWT(token.AccessToken); if err != nil {
-	// 	c.JSON(401, gin.H{
-	// 		"error": err.Error(),
-	// 	})
-	// 	return
-	// }
-	// fmt.Println(claims)
 	api_token := syncUserAccounts(token.AccessToken); if api_token == "" {
 		c.JSON(401, gin.H{
 			"error": "Unable to sync user accounts",
@@ -101,7 +112,26 @@ func Callback(c *gin.Context) {
 		return
 	}
 
-	c.Data(200, "text/html; charset=utf-8", []byte(fmt.Sprintf("export TF_TOKEN_%s=%s </br></br>Set this if terraform fails to detect the callback",buildSafeHostname(gc.Hostname), api_token)))
+	c.JSON(200, gin.H{"access_token": api_token})
+}
+
+func Callback(c *gin.Context) {
+	store, err := redistore.NewRediStore(10, "tcp", ":6379", "", []byte(os.Getenv("TP_SECRET"))); if err != nil {
+		c.JSON(500, gin.H{
+			"redis_error": err.Error(),
+		})
+		return
+	}
+	sessions, _ := store.Get(c.Request, "mysession")
+	state := sessions.Values["state"]
+	if state != c.Query("state") {
+		c.JSON(401, gin.H{
+			"error": "Invalid state",
+		})
+		return
+	}
+	redirect := fmt.Sprintf("%s?code=%s&state=%s",sessions.Values["redirect_uri"],c.Query("code"),state)
+	c.Redirect(302,redirect)
 }
 
 func generateCodeVerifier() string {
@@ -127,7 +157,6 @@ func syncUserAccounts(access_token string) string {
 		return ""
 	 }
 
-	 fmt.Println(info)
 	 user := us.FindByExternalID(fmt.Sprintf("%d", info.ID))
 	 if user == nil {
 		user = &entity.User{}

@@ -21,6 +21,7 @@ const (
 	ENV_TP_AUTH_TYPE 	  = "TP_AUTH_TYPE"
 	ENV_TP_AUTH_CLIENT_ID = "TP_AUTH_CLIENT_ID"
 	ENV_TP_AUTH_SECRET 	  = "TP_AUTH_SECRET"
+	ENV_TP_SECRET 		  = "TP_SECRET"
 	ENV_TP_GITHUB_ORG 	  = "TP_GITHUB_ORG"
 	ENV_CONFIG_FILE 	  = "TP_CONFIG_FILE"
 	ENV_STORAGE_PATH 	  = "TP_STORAGE"
@@ -37,6 +38,7 @@ type Config struct {
 	Database 	 DatabaseConfig `yaml:"database"`
 	AuthProvider AuthProviderConfig `yaml:"auth"`
 	StorageSource 	 metadata.StorageSource
+	SecretString string `yaml:"secret_string"`
 }
 
 type AuthProviderConfig struct {

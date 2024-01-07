@@ -48,21 +48,3 @@ func ParseToken(c *gin.Context) (string, error){
 
 	return splitToken[1], nil
 }
-
-func ValidateJWT(token string, role roles.UserRoles) (jwt.MapClaims, error) {
-	claims := jwt.MapClaims{}
-	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		if jwt.SigningMethodHS256 != token.Method {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-
-		claim_id := claims["id"].(string)
-		if claim_id == "" {
-			return nil, fmt.Errorf("Invalid token")
-		}
-
-
-		return SECRET, nil
-	})
-	return claims, err
-}

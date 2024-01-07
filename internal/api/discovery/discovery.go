@@ -1,6 +1,8 @@
 package discovery
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type ServiceDescovery struct {
 	Modules   string      `json:"modules.v1,omitempty"`
@@ -24,6 +26,6 @@ func Serve(c *gin.Context) {
 	login.Authz = "/v1/auth/authorize"
 	login.Token = "/v1/auth/token"
 	sd.Login = login
-	sd.Login.Ports = []int{10000,10010}
+	sd.Login.Ports = []int{11000,11010}
 	c.JSON(200, sd)
 }

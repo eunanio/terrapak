@@ -46,7 +46,7 @@ func (g GithubProvider) Config() (conf oauth2.Config) {
 	return conf
 }
 
-func (GithubProvider) Authenticate(token string) {}
+func (GithubProvider) Callback(token string) {}
 
 func (GithubProvider) UserInfo(token string) (types.UserInfo,error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil); if err != nil {
@@ -71,3 +71,32 @@ func (GithubProvider) UserInfo(token string) (types.UserInfo,error) {
 
 	return userInfo,nil
 }
+
+func (GithubProvider) UserEmail(token string) (string,error) {
+	req, err := http.NewRequest("GET", "https://api.github.com/user/emails", nil); if err != nil {
+		fmt.Println(err)
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req); if err != nil {
+		fmt.Println(err)
+		return	"", err
+	}
+	defer resp.Body.Close()
+
+	var userEmails []types.UserEmail
+	if err := json.NewDecoder(resp.Body).Decode(&userEmails); err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	for _, email := range userEmails {
+		if email.Primary && email.Verified {
+			return email.Email, nil
+		}
+	}
+
+	return "", fmt.Errorf("no primary email found")
+}
+
