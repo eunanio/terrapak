@@ -7,6 +7,7 @@ Terrapak is a version manager for Terraform modules. Terrapak integrates with yo
 - Supports S3 as storage backend
 - Automatic cleanup of draft modules when pull request is closed unsucessfully
 - Support Gtihub Organisations for Authorization
+- Support for `terraform login` with github
 
 
 ### MVP for v1
@@ -15,6 +16,8 @@ Terrapak is a version manager for Terraform modules. Terrapak integrates with yo
 - [x] Support for future oauth2 providers
 - [ ] rule based assignment for RBAC users
 - [ ] Known issues
+
+*HTTPS is required to use this application, we recommend using a reverse proxy such as ngrok for local development.*
 
 
 > [!NOTE]  

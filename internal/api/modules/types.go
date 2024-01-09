@@ -12,3 +12,7 @@ type ModuleVersionsDTO struct {
 type VersionDTO struct {
 	Version string `json:"version"`
 }
+
+type UploadReadmeDTO struct {
+	Readme string `json:"readme" form:"readme"`
+}

@@ -12,13 +12,10 @@ import (
 )
 
 func HasAuthenticatedRole(roles ...roles.UserRoles) gin.HandlerFunc {
-	fmt.Println("HasAuthenticatedRole")
 	return func(c *gin.Context) {
-		fmt.Println("HasAuthenticatedRole")
 		//authProvider := auth.GetAuthProvider()
 		authHeader := c.GetHeader("Authorization")
 		us := services.UserService{}
-		fmt.Println(authHeader)
 		if authHeader == "" {
 			fmt.Println("No Authorization header provided")
 			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})

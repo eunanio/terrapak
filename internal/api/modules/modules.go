@@ -27,8 +27,13 @@ func Upload(c *gin.Context) {
 	buffer := bytes.NewBuffer(nil)
 	
 	moduleExsits := ms.Find(m)
-	if c.PostForm("readme") != "" {
-		module.Readme = c.PostForm("readme")
+	readmeData, ext := c.GetPostForm("readme"); if !ext {
+		fmt.Println("No readme file provided")
+		return
+	}
+	
+	if ext {
+		module.Readme = readmeData
 		fmt.Println(module.Readme)
 	}
 
