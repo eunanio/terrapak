@@ -1,5 +1,7 @@
 # Terrapak
-Terrapak is a version manager for Terraform modules. Terrapak integrates with your GitHub pull requests to automaticlly publish new versions of your Terraform modules to a private Terraform registry. 
+Terrapak is a version manager for Terraform modules. Terrapak integrates with your GitHub pull requests to automaticlly publish new versions of your Terraform modules to a private Terraform registry.
+
+Please also check out: [Terrapack-Action](https://github.com/eunanhardy/terrapak-action) 
 
 ## Feature Overview
 - Automatic versioning of Terraform modules
