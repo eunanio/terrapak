@@ -1,14 +1,18 @@
 # Terrapak
-Terrapak is a version manager for Terraform modules. Terrapak integrates with your GitHub pull requests to automaticlly publish new versions of your Terraform modules to a private Terraform registry.
+Terrapak is a private registry for your Terraform modules. Terrapak integrates with your GitHub pull requests to automatically publish new versions of your Terraform modules. This server works in conjunction with the [Terrapack-Action](https://github.com/eunanhardy/terrapak-action) to deliver a configuration driven workflow that allows you more flexability in how you structure your Terraform project.
 
-Please also check out: [Terrapack-Action](https://github.com/eunanhardy/terrapak-action) 
+## Requirements
+- Postgres DB
+- Redis sidecar
+- Github OAuth App
+- S3 Bucket for modules
 
 ## Feature Overview
 - Automatic versioning of Terraform modules
 - Monorepo friendly CI/CD workflow
 - Supports S3 as storage backend
-- Automatic cleanup of draft modules when pull request is closed unsucessfully
-- Support Gtihub Organisations for Authorization
+- Automatic cleanup of draft modules when pull request is closed unsuccessfully
+- Support GitHub Organisations for Authorization
 - Support for `terraform login` with github
 
 
@@ -16,10 +20,10 @@ Please also check out: [Terrapack-Action](https://github.com/eunanhardy/terrapak
 - [x] Github-driven automatic versioning of Terraform modules
 - [x] Support S3 as storage backend
 - [x] Support for future oauth2 providers
-- [ ] rule based assignment for RBAC users
-- [ ] Known issues
+- [ ] Improve UX of Github Action
+- [ ] Known Bug Fixes
 
-*HTTPS is required to use this application, we recommend using a reverse proxy such as ngrok for local development.*
+*HTTPS is required to use this application, I recommend using a reverse proxy such as ngrok for local development.*
 
 
 > [!NOTE]  
