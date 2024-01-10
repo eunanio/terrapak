@@ -8,6 +8,7 @@ import (
 
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 )
 
@@ -45,8 +46,38 @@ func (g GithubProvider) Config() (conf oauth2.Config) {
 	}
 	return conf
 }
+// You can use this method as a common way to validate claims.
+func (g GithubProvider) PostAuth(token string, c *gin.Context) {
+	gc := config.GetDefault()
+	if gc.AuthProvider.Organization != "" {
+		user, err := g.UserInfo(token); if err != nil {
+			fmt.Println(err)
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+		req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/orgs/%s/members/%s", gc.AuthProvider.Organization, user.Login), nil); if err != nil {
+			fmt.Println(err)
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
 
-func (GithubProvider) Callback(token string) {}
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+		client := &http.Client{}
+		resp, err := client.Do(req); if err != nil {
+			fmt.Println(err)
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+
+		if resp.StatusCode != 204 {
+			fmt.Println(err)
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+		
+	}
+
+}
 
 func (GithubProvider) UserInfo(token string) (types.UserInfo,error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil); if err != nil {

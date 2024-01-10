@@ -1,9 +1,6 @@
 package auth
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -21,15 +18,10 @@ import (
 	"gopkg.in/boj/redistore.v1"
 )
 
-var (
-	// codeVerifier = generateCodeVerifier()
-	//codeChallenge = generateCodeChallenge(codeVerifier)
-)
-
 type AuthProvider interface {
 	Name() string
 	Config() (conf oauth2.Config)
-	Callback(token string)
+	PostAuth(token string, c *gin.Context)
 	UserEmail(token string) (string,error)
 	UserInfo(token string) (types.UserInfo,error)
 }
@@ -104,6 +96,8 @@ func Token(c *gin.Context) {
 		})
 		return
 	}
+
+	provider.PostAuth(token.AccessToken, c)
 	
 	api_token := syncUserAccounts(token.AccessToken); if api_token == "" {
 		c.JSON(401, gin.H{
@@ -132,17 +126,6 @@ func Callback(c *gin.Context) {
 	}
 	redirect := fmt.Sprintf("%s?code=%s&state=%s",sessions.Values["redirect_uri"],c.Query("code"),state)
 	c.Redirect(302,redirect)
-}
-
-func generateCodeVerifier() string {
-    b := make([]byte, 32)
-    rand.Read(b)
-    return base64.RawURLEncoding.EncodeToString(b)
-}
-
-func generateCodeChallenge(verifier string) string {
-    s256 := sha256.Sum256([]byte(verifier))
-    return base64.RawURLEncoding.EncodeToString(s256[:])
 }
 
 func buildSafeHostname(hostname string) string {
