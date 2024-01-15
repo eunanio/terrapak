@@ -21,6 +21,7 @@ Terrapak is a private registry for your Terraform modules. Terrapak integrates w
 - [x] Support S3 as storage backend
 - [x] Support for future oauth2 providers
 - [ ] Improve UX of Github Action
+- [ ] Unit Tests
 - [ ] Known Bug Fixes
 
 *HTTPS is required to use this application, I recommend using a reverse proxy such as ngrok for local development.*
