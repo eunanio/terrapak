@@ -17,6 +17,7 @@ type Module struct {
 	DownloadCount int       `json:"download_count"`
 	PublishedAt   time.Time `json:"published_at"`
 	Readme        string    `json:"readme"`
+	SHAChecksum   string    `json:"sha_checksum"`
 }
 
 func (Module) TableName() string {

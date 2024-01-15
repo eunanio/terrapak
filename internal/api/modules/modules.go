@@ -25,15 +25,17 @@ func Upload(c *gin.Context) {
 	}
 	storageCleint := storage.NewClient(gc.StorageSource.Protocol)
 	buffer := bytes.NewBuffer(nil)
-	
-	moduleExsits := ms.Find(m)
-	readmeData, ext := c.GetPostForm("readme"); if !ext {
-		fmt.Println("No readme file provided")
+	req := UploadRequest{}
+	err = c.Bind(&req); if err != nil {
+		c.JSON(400, err)
 		return
 	}
+	fmt.Println(req)
+	moduleExsits := ms.Find(m)
 	
-	if ext {
-		module.Readme = readmeData
+	fmt.Println(moduleExsits)
+	if req.Readme != "" {
+		module.Readme = req.Readme
 		fmt.Println(module.Readme)
 	}
 
