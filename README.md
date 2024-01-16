@@ -1,6 +1,26 @@
 # Terrapak
 Terrapak is a private registry for your Terraform modules. Terrapak integrates with your GitHub pull requests to automatically publish new versions of your Terraform modules. This server works in conjunction with the [Terrapack-Action](https://github.com/eunanhardy/terrapak-action) to deliver a configuration driven workflow that allows you more flexability in how you structure your Terraform project.
 
+## Getting Started
+
+Terrapak uses a configuration file to define the modules you want to publish. Create a file named `terrapak.hcl` in the root of your repository. The file should contain a list of modules you want to publish. Each module should have a name and a path to the module directory. The path is relative to the root of the repository.
+Example `terrapak.hcl` file:
+
+```hcl
+terrapak {
+    hostname = "terrapak.dev"
+    organization = "myorg"
+}
+
+module "aws-bucket" {
+    provider = "aws"
+    path = "modules/aws/bucket"
+    version = "1.0.0"
+    # Example url: terrapak.dev/myorg/aws-bucket/aws
+}
+
+```
+
 ## Requirements
 - Postgres DB
 - Redis sidecar
