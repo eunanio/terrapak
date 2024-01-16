@@ -44,6 +44,7 @@ func Upload(c *gin.Context) {
 		module.Provider = m.Provider
 		module.Namespace = m.Namespace
 		module.Version = m.Version
+		module.SHAChecksum = req.Hash
 
 		ms.Create(module)
 	}
