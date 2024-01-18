@@ -57,8 +57,6 @@ type DatabaseConfig struct {
 
 func Load() Config {
 	c := Config{}
-	// DEBUG: remove this for production
-	os.Setenv(ENV_CONFIG_FILE, "./config.yml")
 	_ , exists  := os.LookupEnv(ENV_CONFIG_FILE)
 
 	if exists {
@@ -197,9 +195,5 @@ func setupEnvs(c *Config){
 
 	if c.Organization == "" {
 		c.Organization = "Default"
-	}
-
-	if c.AuthProvider.Type == "" {
-		c.AuthProvider.Type = "PAT"
 	}
 }

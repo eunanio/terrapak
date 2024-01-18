@@ -28,7 +28,7 @@ func Parse(c *gin.Context) (mid MID, err error){
 	mid.Provider = c.Param("provider")
 	mid.Namespace = c.Param("namespace")
 	mid.Version = c.Param("version")
-	fmt.Println(mid)
+
 	if mid.Version != "" {
 		mid.Version = buildVersion(mid.Version)
 	}

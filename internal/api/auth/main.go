@@ -37,6 +37,13 @@ type OAuthToken struct {
 	AccessToken string `json:"access_token"`
 }
 
+type TokenType int
+
+const (
+	User TokenType = iota
+	Device
+)
+
 func GetAuthProvider() AuthProvider {
 	gc := config.GetDefault()
 	switch gc.AuthProvider.Type {
@@ -47,7 +54,6 @@ func GetAuthProvider() AuthProvider {
 	return nil
 
 }
-
 
 func Authorize(c *gin.Context) {
 	//..
@@ -150,7 +156,7 @@ func syncUserAccounts(access_token string) string {
 		user = us.Create(*user)
 	 }
 
-	 token, err := generateApiToken(user); if err != nil {
+	 token, err := GenerateApiToken(user,User); if err != nil {
 		fmt.Println(err)
 		return ""
 	}
@@ -158,17 +164,20 @@ func syncUserAccounts(access_token string) string {
 	return token
 }
 
-func generateApiToken(user *entity.User) (string, error) {
+func GenerateApiToken(user *entity.User, tokenType TokenType) (string, error) {
 	us := &services.UserService{}
 	us.RemoveApiKeys(user.ID)
 	token, err := jwt.GenerateJWT(user.ID.String(), user.Role); if err != nil {
 		return "", err
 	}
+
+
 	key	:= &entity.ApiKeys{}
 	key.Name = fmt.Sprintf("%s-apikey", user.Name)
 	key.Token = config.HashSecret(token)
 	key.Role = int(user.Role)
 	key.UserID = user.ID
+	key.Type = int(tokenType)
 	us.CreateApiKey(*key)
 
 

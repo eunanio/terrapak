@@ -36,7 +36,12 @@ func Upload(c *gin.Context) {
 	fmt.Println(moduleExsits)
 	if req.Readme != "" {
 		module.Readme = req.Readme
-		fmt.Println(module.Readme)
+		if(moduleExsits.Readme != req.Readme){
+			moduleExsits.Readme = req.Readme
+		}
+	}
+	if(moduleExsits.SHAChecksum != req.Hash){
+		moduleExsits.SHAChecksum = req.Hash
 	}
 
 	if moduleExsits.ID == uuid.Nil {
@@ -47,6 +52,8 @@ func Upload(c *gin.Context) {
 		module.SHAChecksum = req.Hash
 
 		ms.Create(module)
+	} else {
+		ms.Update(moduleExsits)
 	}
 	
 	file, err := c.FormFile("file"); if err != nil {
@@ -159,7 +166,7 @@ func PublishDraft(c *gin.Context) {
 		return
 	}
 
-	if module.ID != uuid.Nil {
+	if module.ID != uuid.Nil && module.PublishedAt.IsZero() {
 		module.PublishedAt = time.Now()
 		ms.Update(module)
 	}

@@ -11,6 +11,7 @@ type ApiKeys struct {
 	Token string `json:"key"`
 	Role  int    `json:"role"`
 	UserID uuid.UUID `json:"user_id"`
+	Type int `json:"type"`
 }
 
 func (ApiKeys) TableName() string {
