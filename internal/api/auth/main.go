@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/providers/github"
@@ -57,13 +56,14 @@ func GetAuthProvider() AuthProvider {
 
 func Authorize(c *gin.Context) {
 	//..
-	store, err := redistore.NewRediStore(10, "tcp", ":6379", "", []byte(os.Getenv("TP_SECRET"))); if err != nil {
+	gc := config.GetDefault()
+	store, err := redistore.NewRediStore(10, "tcp", fmt.Sprintf("%s:6379",gc.Redis.Hostname), gc.Redis.Password, []byte(gc.SecretString)); if err != nil {
 		c.JSON(500, gin.H{
 			"redis_error": err.Error(),
 		})
 		return
 	}
-	gc := config.GetDefault()
+	
 	
 	sessions, _ := store.Get(c.Request, "mysession")
 	sessions.Options.MaxAge = 60 * 2
@@ -116,7 +116,8 @@ func Token(c *gin.Context) {
 }
 
 func Callback(c *gin.Context) {
-	store, err := redistore.NewRediStore(10, "tcp", ":6379", "", []byte(os.Getenv("TP_SECRET"))); if err != nil {
+	gc := config.GetDefault()
+	store, err := redistore.NewRediStore(10, "tcp", fmt.Sprintf("%s:6379",gc.Redis.Hostname), gc.Redis.Password, []byte(gc.SecretString)); if err != nil {
 		c.JSON(500, gin.H{
 			"redis_error": err.Error(),
 		})

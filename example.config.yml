@@ -1,0 +1,15 @@
+# Please use as example config for your own deployment
+hostname: example.com
+organization: "terrapak-dev"
+storage: s3://my-modules-bucket 
+auth:
+  type: github
+  client_secret: __SECRET_KEY__
+  client_id: __CLIENT_ID__
+database:
+  host: postgres.example.com
+  username: __DB_USERNAME__
+  password: __DB_PASSWORD__
+redis:
+  host: redis.example.com
+  password: __PASSWORD__ 

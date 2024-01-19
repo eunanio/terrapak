@@ -29,6 +29,8 @@ const (
 	ENV_TP_USER 		  = "TP_USER"
 	ENV_TP_PASSWORD 	  = "TP_PASSWORD"
 	ENV_TP_ROLES 		  = "TP_ROLES"
+	ENV_REDIS_HOST 		  = "TP_REDIS_HOST"
+	ENV_REDIS_PASSWORD 	  = "TP_REDIS_PASSWORD"
 )
 
 type Config struct {
@@ -36,6 +38,7 @@ type Config struct {
 	Organization string `yaml:"organization"`
 	StoragePath  string `yaml:"storage"`
 	Database 	 DatabaseConfig `yaml:"database"`
+	Redis 		 RedisConfig `yaml:"redis"`
 	AuthProvider AuthProviderConfig `yaml:"auth"`
 	StorageSource 	 metadata.StorageSource
 	SecretString string `yaml:"secret_string"`
@@ -52,6 +55,11 @@ type AuthProviderConfig struct {
 type DatabaseConfig struct {
 	Hostname string `yaml:"host"`
 	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+type RedisConfig struct {
+	Hostname string `yaml:"host"`
 	Password string `yaml:"password"`
 }
 
