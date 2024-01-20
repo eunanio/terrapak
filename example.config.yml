@@ -2,6 +2,7 @@
 hostname: example.com
 organization: "terrapak-dev"
 storage: s3://my-modules-bucket 
+secret: __SOME_RANDOM_STRING__
 auth:
   type: github
   client_secret: __SECRET_KEY__

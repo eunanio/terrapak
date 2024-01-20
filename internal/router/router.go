@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"terrapak/internal/api/auth"
 	"terrapak/internal/api/auth/roles"
 	"terrapak/internal/api/discovery"
@@ -11,10 +12,8 @@ import (
 )
 
 func Start() {
-
-	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
-	r.Use(middleware.HasAuthenticatedRole(roles.Editor))
+	
 	r.GET("/ping", Ping)
 	moduleRouter := r.Group("v1/modules")
 	ApiRouter 	 := r.Group("v1/api")
@@ -25,7 +24,7 @@ func Start() {
 
 	//Service Discovery
 	r.GET("/.well-known/terraform.json", discovery.Serve)
-	
+	fmt.Println("[SETUP] - Terrapak Started")
 	r.Run(":5551")
 }
 
@@ -36,11 +35,13 @@ func Ping(c *gin.Context) {
 }
 
 func ModuleRoutes(r *gin.RouterGroup) {
+	r.Use(middleware.HasAuthenticatedRole(roles.Editor))
 	r.GET("/:namespace/:name/:provider/:version/download",modules.Download)
 	r.GET("/:namespace/:name/:provider/versions",modules.Versions)
 }
 
 func ApiRoutes(r *gin.RouterGroup) {
+	r.Use(middleware.HasAuthenticatedRole(roles.Editor))
 	r.GET("/:namespace/:name/:provider/:version",modules.Read)
 	r.POST("/:namespace/:name/:provider/:version/upload",modules.Upload)
 	r.GET("/:namespace/:name/:provider/:version/close",modules.RemoveDraft)

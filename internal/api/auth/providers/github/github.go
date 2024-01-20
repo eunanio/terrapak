@@ -98,8 +98,6 @@ func (GithubProvider) UserInfo(token string) (types.UserInfo,error) {
 		return userInfo, err
 	}
 
-	fmt.Println(userInfo)
-
 	return userInfo,nil
 }
 

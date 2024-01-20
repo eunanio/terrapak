@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"terrapak/internal/api/metadata"
+	"terrapak/internal/api/storagesource"
 
 	"gopkg.in/yaml.v2"
 )
@@ -40,8 +40,8 @@ type Config struct {
 	Database 	 DatabaseConfig `yaml:"database"`
 	Redis 		 RedisConfig `yaml:"redis"`
 	AuthProvider AuthProviderConfig `yaml:"auth"`
-	StorageSource 	 metadata.StorageSource
-	SecretString string `yaml:"secret_string"`
+	StorageSource 	 storagesource.StorageSource
+	SecretString string `yaml:"secret"`
 }
 
 type AuthProviderConfig struct {
@@ -80,7 +80,7 @@ func Load() Config {
 		}
 	}
 
-	storageSource, err := metadata.NewStorageSoruce(c.StoragePath); if err != nil {
+	storageSource, err := storagesource.NewStorageSoruce(c.StoragePath); if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

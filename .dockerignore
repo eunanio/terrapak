@@ -1,2 +1,4 @@
 .env
 ngrok
+config.yml
+example.config.yml

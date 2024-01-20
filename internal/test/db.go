@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
 	"terrapak/internal/db"
@@ -23,8 +24,11 @@ func PostgresDB(config *config.Config, ctx context.Context) *postgres.PostgresCo
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("starting postgres container")
 	postgresContainer.Start(ctx)
+	fmt.Println("postgres container started")
 	db.Start()
+	fmt.Println("database started")
 	return postgresContainer
 	
 }
