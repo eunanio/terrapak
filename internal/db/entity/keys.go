@@ -11,6 +11,7 @@ type ApiKeys struct {
 	Token string `json:"key"`
 	Role  int    `json:"role"`
 	UserID uuid.UUID `json:"user_id"`
+	Type int `json:"type"`
 }
 
 func (ApiKeys) TableName() string {
@@ -43,5 +44,5 @@ func (a *ApiKeys) Delete(client *gorm.DB, apikey *ApiKeys) {
 }
 
 func (a *ApiKeys) DeleteByUser(client *gorm.DB, user_id uuid.UUID) {
-	client.Where("user_id = ?", user_id).Delete(&a)
+	client.Where("user_id = ? AND type = ?", user_id,0).Delete(&a)
 }

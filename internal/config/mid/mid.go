@@ -2,6 +2,8 @@ package mid
 
 import (
 	"fmt"
+	"log"
+	"regexp"
 
 	"github.com/Masterminds/semver"
 	"github.com/gin-gonic/gin"
@@ -14,7 +16,7 @@ type MID struct {
 	Version     string `json:"version"`
 }
 
-func NewMID(name, provider, namespace, version string) MID {
+func NewMID(namespace, name, provider, version string) MID {
 	return MID{
 		Name: name,
 		Provider: provider,
@@ -28,9 +30,11 @@ func Parse(c *gin.Context) (mid MID, err error){
 	mid.Provider = c.Param("provider")
 	mid.Namespace = c.Param("namespace")
 	mid.Version = c.Param("version")
-	fmt.Println(mid)
+
 	if mid.Version != "" {
-		mid.Version = buildVersion(mid.Version)
+		mid.Version, err = buildVersion(mid.Version); if err != nil {
+			return mid, err
+		}
 	}
 	err = validate(mid)
 	return mid, err
@@ -48,6 +52,18 @@ func validate(mid MID) error {
 
 	if mid.Namespace == "" {
 		return fmt.Errorf("[mid parsing error]: namespace is empty")
+	}
+
+	if !isUrlSafeString(mid.Name) {
+		return fmt.Errorf("Invalid characters in name")
+	}
+
+	if !isUrlSafeString(mid.Provider) {
+		return fmt.Errorf("Invalid characters in provider")
+	}
+
+	if !isUrlSafeString(mid.Namespace) {
+		return fmt.Errorf("Invalid characters in namespace")
 	}
 	
 	return nil
@@ -81,11 +97,19 @@ func (m MID) Filepath() string {
 	return fmt.Sprintf("%s/%s/%s/%s/%s.zip",m.Namespace,m.Provider,m.Name,m.Version,m.Name)
 }
 
-func buildVersion(version string) string {
+func buildVersion(version string) (string, error) {
 	safe_version, err := semver.NewVersion(version)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return fmt.Sprintf("%d.%d.%d", safe_version.Major(), safe_version.Minor(), safe_version.Patch())
+	return fmt.Sprintf("%d.%d.%d", safe_version.Major(), safe_version.Minor(), safe_version.Patch()),nil
+}
+
+func isUrlSafeString(s string) bool {
+	reg, err := regexp.Compile("^[a-zA-Z0-9_-]*$")
+    if err != nil {
+        log.Println(err)
+    }
+    return reg.MatchString(s)
 }
 

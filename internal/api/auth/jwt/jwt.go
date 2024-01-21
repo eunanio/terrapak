@@ -2,23 +2,26 @@ package jwt
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"terrapak/internal/api/auth/roles"
+	"terrapak/internal/config"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
-var SECRET = []byte("342wttae4ghtyj5trgdfdsadasd")
+
 
 func DecodeJWT(token string) (jwt.MapClaims, error) {
 	claims := jwt.MapClaims{}
+	secret := []byte(os.Getenv(config.ENV_TP_SECRET))
 	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		if jwt.SigningMethodHS256 != token.Method {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		return SECRET, nil
+		return secret, nil
 	})
 	return claims, err
 
@@ -30,7 +33,8 @@ func GenerateJWT(user_id string, role roles.UserRoles) (string, error) {
 	claims["scope"] = role.String()
 	claims["iat"] = time.Now().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(SECRET)
+	secret := []byte(os.Getenv(config.ENV_TP_SECRET))
+	return token.SignedString(secret)
 }
 
 func ParseToken(c *gin.Context) (string, error){

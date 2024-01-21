@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"terrapak/internal/api/metadata"
+	"terrapak/internal/api/storagesource"
 
 	"gopkg.in/yaml.v2"
 )
@@ -29,6 +29,8 @@ const (
 	ENV_TP_USER 		  = "TP_USER"
 	ENV_TP_PASSWORD 	  = "TP_PASSWORD"
 	ENV_TP_ROLES 		  = "TP_ROLES"
+	ENV_REDIS_HOST 		  = "TP_REDIS_HOST"
+	ENV_REDIS_PASSWORD 	  = "TP_REDIS_PASSWORD"
 )
 
 type Config struct {
@@ -36,9 +38,10 @@ type Config struct {
 	Organization string `yaml:"organization"`
 	StoragePath  string `yaml:"storage"`
 	Database 	 DatabaseConfig `yaml:"database"`
+	Redis 		 RedisConfig `yaml:"redis"`
 	AuthProvider AuthProviderConfig `yaml:"auth"`
-	StorageSource 	 metadata.StorageSource
-	SecretString string `yaml:"secret_string"`
+	StorageSource 	 storagesource.StorageSource
+	SecretString string `yaml:"secret"`
 }
 
 type AuthProviderConfig struct {
@@ -55,10 +58,13 @@ type DatabaseConfig struct {
 	Password string `yaml:"password"`
 }
 
+type RedisConfig struct {
+	Hostname string `yaml:"host"`
+	Password string `yaml:"password"`
+}
+
 func Load() Config {
 	c := Config{}
-	// DEBUG: remove this for production
-	os.Setenv(ENV_CONFIG_FILE, "./config.yml")
 	_ , exists  := os.LookupEnv(ENV_CONFIG_FILE)
 
 	if exists {
@@ -74,7 +80,7 @@ func Load() Config {
 		}
 	}
 
-	storageSource, err := metadata.NewStorageSoruce(c.StoragePath); if err != nil {
+	storageSource, err := storagesource.NewStorageSource(c.StoragePath); if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -197,9 +203,5 @@ func setupEnvs(c *Config){
 
 	if c.Organization == "" {
 		c.Organization = "Default"
-	}
-
-	if c.AuthProvider.Type == "" {
-		c.AuthProvider.Type = "PAT"
 	}
 }

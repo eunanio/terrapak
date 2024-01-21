@@ -1,4 +1,4 @@
-package metadata
+package storagesource
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ var (
 	supportedProtocols = []string{"mnt", "s3"}
 )
 
-func NewStorageSoruce(soruce string) (StorageSource, error) {
+func NewStorageSource(soruce string) (StorageSource, error) {
 	s := StorageSource{}
 	s.Protocol = strings.Split(soruce, "://")[0]
 	s.Path = strings.Split(soruce, "://")[1]

@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/providers/github"
@@ -37,6 +36,13 @@ type OAuthToken struct {
 	AccessToken string `json:"access_token"`
 }
 
+type TokenType int
+
+const (
+	User TokenType = iota
+	Device
+)
+
 func GetAuthProvider() AuthProvider {
 	gc := config.GetDefault()
 	switch gc.AuthProvider.Type {
@@ -48,16 +54,16 @@ func GetAuthProvider() AuthProvider {
 
 }
 
-
 func Authorize(c *gin.Context) {
 	//..
-	store, err := redistore.NewRediStore(10, "tcp", ":6379", "", []byte(os.Getenv("TP_SECRET"))); if err != nil {
+	gc := config.GetDefault()
+	store, err := redistore.NewRediStore(10, "tcp", fmt.Sprintf("%s:6379",gc.Redis.Hostname), gc.Redis.Password, []byte(gc.SecretString)); if err != nil {
 		c.JSON(500, gin.H{
 			"redis_error": err.Error(),
 		})
 		return
 	}
-	gc := config.GetDefault()
+	
 	
 	sessions, _ := store.Get(c.Request, "mysession")
 	sessions.Options.MaxAge = 60 * 2
@@ -110,7 +116,8 @@ func Token(c *gin.Context) {
 }
 
 func Callback(c *gin.Context) {
-	store, err := redistore.NewRediStore(10, "tcp", ":6379", "", []byte(os.Getenv("TP_SECRET"))); if err != nil {
+	gc := config.GetDefault()
+	store, err := redistore.NewRediStore(10, "tcp", fmt.Sprintf("%s:6379",gc.Redis.Hostname), gc.Redis.Password, []byte(gc.SecretString)); if err != nil {
 		c.JSON(500, gin.H{
 			"redis_error": err.Error(),
 		})
@@ -150,7 +157,7 @@ func syncUserAccounts(access_token string) string {
 		user = us.Create(*user)
 	 }
 
-	 token, err := generateApiToken(user); if err != nil {
+	 token, err := GenerateApiToken(user,User); if err != nil {
 		fmt.Println(err)
 		return ""
 	}
@@ -158,17 +165,20 @@ func syncUserAccounts(access_token string) string {
 	return token
 }
 
-func generateApiToken(user *entity.User) (string, error) {
+func GenerateApiToken(user *entity.User, tokenType TokenType) (string, error) {
 	us := &services.UserService{}
 	us.RemoveApiKeys(user.ID)
 	token, err := jwt.GenerateJWT(user.ID.String(), user.Role); if err != nil {
 		return "", err
 	}
+
+
 	key	:= &entity.ApiKeys{}
 	key.Name = fmt.Sprintf("%s-apikey", user.Name)
 	key.Token = config.HashSecret(token)
 	key.Role = int(user.Role)
 	key.UserID = user.ID
+	key.Type = int(tokenType)
 	us.CreateApiKey(*key)
 
 

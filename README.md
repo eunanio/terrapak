@@ -22,8 +22,8 @@ module "aws-bucket" {
 ```
 
 ## Requirements
-- Postgres DB
-- Redis sidecar
+- Postgres 16
+- Redis 7
 - Github OAuth App
 - S3 Bucket for modules
 
@@ -36,16 +36,49 @@ module "aws-bucket" {
 - Support for `terraform login` with github
 
 
-### MVP for v1
-- [x] Github-driven automatic versioning of Terraform modules
-- [x] Support S3 as storage backend
-- [x] Support for future oauth2 providers
-- [ ] Improve UX of Github Action
-- [ ] Unit Tests
-- [ ] Known Bug Fixes
+### Installation
+Terrapak is available as a docker image on [Docker Hub](https://hub.docker.com/r/monoci/terrapak). You can run the server with the following command:
+
+```bash
+docker run -p 5551:80 --mount type=bind,source="./config.yml",target=/tmp/config.yml -e TP_CONFIG_FILE=/tmp/config.yml monoci/terrapak
+```
+
+Docker Compose
+```yaml
+version: "1"
+# This compose file is targeting local development.For deployments please use dedicated services like RDS for Postgres
+services:
+  terrapak:
+    image: monoci/terrapak:v1
+    ports:
+      - "5551:5551"
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./config.yml:/tmp/config.yml
+    environment:
+     - TP_CONFIG_FILE=/tmp/config.yml
+  redis:
+    image: redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - /redis:/data
+    env_file:
+      - .env
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - /postgres:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+```
 
 *HTTPS is required to use this application, I recommend using a reverse proxy such as ngrok for local development.*
 
-
-> [!NOTE]  
-> This project is currently in development and not ready for production use.
