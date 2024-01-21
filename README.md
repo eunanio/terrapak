@@ -22,8 +22,8 @@ module "aws-bucket" {
 ```
 
 ## Requirements
-- Postgres DB
-- Redis sidecar
+- Postgres 16
+- Redis 7
 - Github OAuth App
 - S3 Bucket for modules
 
