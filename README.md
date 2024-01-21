@@ -1,6 +1,20 @@
 # Terrapak
 Terrapak is a private registry for your Terraform modules. Terrapak integrates with your GitHub pull requests to automatically publish new versions of your Terraform modules. This server works in conjunction with the [Terrapack-Action](https://github.com/eunanhardy/terrapak-action) to deliver a configuration driven workflow that allows you more flexability in how you structure your Terraform project.
 
+## Feature Overview
+- Automatic versioning of Terraform modules
+- Monorepo friendly CI/CD workflow
+- Supports S3 as storage backend
+- Automatic cleanup of draft modules when pull request is closed unsuccessfully
+- Support GitHub Organisations for Authorization
+- Support for `terraform login` with github
+
+## Requirements
+- Postgres 16
+- Redis 7
+- Github OAuth App
+- S3 Bucket for modules
+
 ## Getting Started
 
 Terrapak uses a configuration file to define the modules you want to publish. Create a file named `terrapak.hcl` in the root of your repository. The file should contain a list of modules you want to publish. Each module should have a name and a path to the module directory. The path is relative to the root of the repository.
@@ -20,21 +34,6 @@ module "aws-bucket" {
 }
 
 ```
-
-## Requirements
-- Postgres 16
-- Redis 7
-- Github OAuth App
-- S3 Bucket for modules
-
-## Feature Overview
-- Automatic versioning of Terraform modules
-- Monorepo friendly CI/CD workflow
-- Supports S3 as storage backend
-- Automatic cleanup of draft modules when pull request is closed unsuccessfully
-- Support GitHub Organisations for Authorization
-- Support for `terraform login` with github
-
 
 ### Installation
 Terrapak is available as a docker image on [Docker Hub](https://hub.docker.com/r/monoci/terrapak). You can run the server with the following command:
