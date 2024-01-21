@@ -21,6 +21,8 @@ Terrapak uses a configuration file to define the modules you want to publish. Cr
 Example `terrapak.hcl` file:
 
 ```hcl
+# terrapak.hcl
+
 terrapak {
     hostname = "terrapak.dev"
     organization = "myorg"
@@ -33,6 +35,17 @@ module "aws-bucket" {
     # Example url: terrapak.dev/myorg/aws-bucket/aws
 }
 
+```
+
+Example usage as module source:
+```hcl
+# main.tf
+
+module "bucket" {
+    source = "terrapak.dev/myorg/aws-bucket/aws"
+    version = "1.0.0"
+    bucket_name = "my-bucket"
+}
 ```
 
 ### Installation
