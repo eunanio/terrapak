@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
 	"time"
@@ -44,7 +45,7 @@ func (p *S3Provider) Type() string {
 func loadClient() *S3Config {
 	config := S3Config{}
 	cfg, err := aws_config.LoadDefaultConfig(context.TODO()); if err != nil {
-		panic("failed to load config")
+		log.Fatal("failed to load config")
 	}
 	config.Client = s3.NewFromConfig(cfg)
 	return &config
@@ -67,8 +68,6 @@ func (p *S3Provider) Upload(mid mid.MID, data []byte) error {
 			return fmt.Errorf("failed to upload file to s3, %v", err)
 		}
 	}
-
-	fmt.Println("Successfully uploaded file to s3?")
 	return nil
 }
 
@@ -90,7 +89,6 @@ func (p *S3Presign) Presign(bucket,key string, ctx context.Context) (url string,
 		Bucket: &bucket,
 		Key:    &key,
 	})
-	fmt.Println(request)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to presign request, %v", err)

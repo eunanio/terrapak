@@ -8,6 +8,8 @@ import (
 
 	"net/http"
 
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 )
@@ -51,12 +53,12 @@ func (g GithubProvider) PostAuth(token string, c *gin.Context) {
 	gc := config.GetDefault()
 	if gc.AuthProvider.Organization != "" {
 		user, err := g.UserInfo(token); if err != nil {
-			fmt.Println(err)
+			slog.Error(err.Error())
 			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 			return
 		}
 		req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/orgs/%s/members/%s", gc.AuthProvider.Organization, user.Login), nil); if err != nil {
-			fmt.Println(err)
+			slog.Error(err.Error())
 			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 			return
 		}
@@ -64,13 +66,12 @@ func (g GithubProvider) PostAuth(token string, c *gin.Context) {
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 		client := &http.Client{}
 		resp, err := client.Do(req); if err != nil {
-			fmt.Println(err)
+			slog.Error(err.Error())
 			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 			return
 		}
 
 		if resp.StatusCode != 204 {
-			fmt.Println(err)
 			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 			return
 		}
@@ -81,20 +82,20 @@ func (g GithubProvider) PostAuth(token string, c *gin.Context) {
 
 func (GithubProvider) UserInfo(token string) (types.UserInfo,error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil); if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
 	client := &http.Client{}
 	resp, err := client.Do(req); if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		return	types.UserInfo{}, err
 	}
 	defer resp.Body.Close()
 
 	var userInfo types.UserInfo
 	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		return userInfo, err
 	}
 
@@ -103,20 +104,20 @@ func (GithubProvider) UserInfo(token string) (types.UserInfo,error) {
 
 func (GithubProvider) UserEmail(token string) (string,error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user/emails", nil); if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
 	client := &http.Client{}
 	resp, err := client.Do(req); if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		return	"", err
 	}
 	defer resp.Body.Close()
 
 	var userEmails []types.UserEmail
 	if err := json.NewDecoder(resp.Body).Decode(&userEmails); err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		return "", err
 	}
 

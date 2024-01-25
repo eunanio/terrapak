@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strings"
 	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/providers/github"
@@ -143,7 +144,7 @@ func syncUserAccounts(access_token string) string {
 	provider := GetAuthProvider()
 	us := &services.UserService{}
 	info, err := provider.UserInfo(access_token); if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		return ""
 	 }
 
@@ -158,7 +159,7 @@ func syncUserAccounts(access_token string) string {
 	 }
 
 	 token, err := GenerateApiToken(user,User); if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		return ""
 	}
 

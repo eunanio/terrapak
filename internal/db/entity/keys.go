@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"log"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -21,7 +23,7 @@ func (ApiKeys) TableName() string {
 func (a *ApiKeys) Up(client *gorm.DB) {
 	err := client.AutoMigrate(&ApiKeys{})
 	if err != nil {
-		panic("error migrating apikeys table")
+		log.Fatal("error migrating apikeys table")
 	}
 }
 

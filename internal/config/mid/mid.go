@@ -2,7 +2,7 @@ package mid
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"regexp"
 
 	"github.com/Masterminds/semver"
@@ -79,7 +79,7 @@ func (m MID) String() string {
 
 func (m MID) Path() string {
 	if m.Version == "" {
-		fmt.Println("version is empty")
+		slog.Warn("version is empty")
 		return ""
 	}
 	return fmt.Sprintf("%s/%s/%s/%s", m.Namespace, m.Provider, m.Name, m.Version)
@@ -91,7 +91,7 @@ func (m MID) Filename() string {
 
 func (m MID) Filepath() string {
 	if m.Version == "" {
-		fmt.Println("version is empty")
+		slog.Warn("version is empty")
 		return ""
 	}
 	return fmt.Sprintf("%s/%s/%s/%s/%s.zip",m.Namespace,m.Provider,m.Name,m.Version,m.Name)
@@ -108,7 +108,7 @@ func buildVersion(version string) (string, error) {
 func isUrlSafeString(s string) bool {
 	reg, err := regexp.Compile("^[a-zA-Z0-9_-]*$")
     if err != nil {
-        log.Println(err)
+        slog.Error(err.Error())
     }
     return reg.MatchString(s)
 }

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"fmt"
+	"log/slog"
 	"slices"
 	"terrapak/internal/api/auth/jwt"
 	"terrapak/internal/api/auth/roles"
@@ -13,11 +13,11 @@ import (
 
 func HasAuthenticatedRole(roles ...roles.UserRoles) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//authProvider := auth.GetAuthProvider()
+		
 		authHeader := c.GetHeader("Authorization")
 		us := services.UserService{}
 		if authHeader == "" {
-			fmt.Println("No Authorization header provided")
+			slog.Debug("No Authorization header provided")
 			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 			return
 		}

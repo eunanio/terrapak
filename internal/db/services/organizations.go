@@ -1,7 +1,7 @@
 package services
 
 import (
-	"fmt"
+	"log/slog"
 	"terrapak/internal/db/client"
 	"terrapak/internal/db/entity"
 
@@ -24,7 +24,7 @@ func (os *OrganizationService) UpdateName(id uuid.UUID, name string) {
 		organization.Name = name
 		organization.Update(client)
 	}else {
-		fmt.Println("Error: Organization not found when attempting to update name")
+		slog.Error("Organization not found when attempting to update name")
 	}
 }
 

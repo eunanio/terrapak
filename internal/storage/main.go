@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"log"
 	"terrapak/internal/config/mid"
 	"terrapak/internal/storage/providers/s3"
 )
@@ -18,12 +19,11 @@ func NewClient(protocol string) StorageProvider {
 	switch protocol {
 		case "s3":
 			return s3.NewProvider()
-		// case "mnt":
-		// 	return local.NewProvider()
 		default:
-			panic("invalid protocol")
+			log.Fatal("invalid protocol")
 		}
 
+	return nil
 }
 
 

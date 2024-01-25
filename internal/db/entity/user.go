@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"log"
 	"terrapak/internal/api/auth/roles"
 
 	"github.com/google/uuid"
@@ -25,7 +26,7 @@ func (User) TableName() string {
 func (u *User) Up(client *gorm.DB) {
 	err := client.AutoMigrate(&User{})
 	if err != nil {
-		panic("error migrating users table")
+		log.Fatal("error migrating users table")
 	}
 }
 

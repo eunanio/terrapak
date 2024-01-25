@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"log"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -17,7 +19,7 @@ func (Organization) TableName() string {
 func (o *Organization) Up(client *gorm.DB) {
 	err := client.AutoMigrate(&Organization{})
 	if err != nil {
-		panic("error migrating organizations table")
+		log.Fatal("error migrating organizations table")
 	}
 }
 
