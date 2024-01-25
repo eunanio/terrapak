@@ -80,7 +80,7 @@ func Load() Config {
 		}
 	}
 
-	storageSource, err := storagesource.NewStorageSoruce(c.StoragePath); if err != nil {
+	storageSource, err := storagesource.NewStorageSource(c.StoragePath); if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
