@@ -37,7 +37,7 @@ func (m *Module) Create(client *gorm.DB, module *Module) {
 
 func (m *Module) Read(client *gorm.DB, mid mid.MID) (module *Module) {
 	result := client.Where("Namespace = ? AND Provider = ? AND Name = ? AND Version = ?", mid.Namespace,mid.Provider,mid.Name,mid.Version).First(&module); if result.Error != nil {
-		slog.Error(result.Error.Error())
+		slog.Debug(result.Error.Error())
 	}
 	return module
 }

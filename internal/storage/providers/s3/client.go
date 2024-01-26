@@ -93,7 +93,7 @@ func (p *S3Presign) Presign(bucket,key string, ctx context.Context) (url string,
 	if err != nil {
 		return "", fmt.Errorf("failed to presign request, %v", err)
 	}
-	fmt.Println(request.URL)
+
 	return request.URL, nil
 }
 
@@ -110,7 +110,6 @@ func getPresignUrl(bucket,key string, ctx context.Context, client *S3Config) (ur
 		Key:    &key,
 	},p.setPresignOptions)
 
-	fmt.Println(request)
 	if err != nil {
 		return "", fmt.Errorf("failed to presign request, %v", err)
 	}

@@ -87,7 +87,7 @@ func Token(c *gin.Context) {
 	tokenRequest := TokenRequest{}
 	err := c.Bind(&tokenRequest); if err != nil {
 		if e, ok := err.(*json.SyntaxError); ok {
-			fmt.Printf("syntax error at byte offset %d", e.Offset)
+			slog.Error(fmt.Sprintf("syntax error at byte offset %d", e.Offset))
 		}
 		c.JSON(400, gin.H{
 			"error": err.Error(),
