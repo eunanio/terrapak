@@ -1,10 +1,12 @@
 package config
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"terrapak/internal/api/storagesource"
+
+	"log"
 
 	"gopkg.in/yaml.v2"
 )
@@ -70,19 +72,20 @@ func Load() Config {
 	if exists {
 		contents, err := os.ReadFile(os.Getenv(ENV_CONFIG_FILE))
 		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
+			log.Fatal(err)
 		}
 		
 		err = yaml.Unmarshal(contents, &c); if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 	}
 
+	if c.StoragePath == "" {
+		slog.Error("storage path is required, either in config file or env")
+	}
+	
 	storageSource, err := storagesource.NewStorageSource(c.StoragePath); if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 	c.StorageSource = storageSource
 
@@ -95,39 +98,39 @@ func Load() Config {
 
 func validate(c *Config){
 	if c.Hostname == "" {
-		panic("hostname is required, either in config file or env")
+		log.Fatal("hostname is required, either in config file or env")
 	}
 
 	if c.Database.Hostname == "" {
-		panic("database hostname is required, either in config file or env")
+		log.Fatal("database hostname is required, either in config file or env")
 	}
 
 	if c.Database.Username == "" {
-		panic("database username is required, either in config file or env")
+		log.Fatal("database username is required, either in config file or env")
 	}
 
 	if c.Database.Password == "" {
-		panic("database password is required, either in config file or env")
+		log.Fatal("database password is required, either in config file or env")
 	}
 
 	if c.AuthProvider.Type == "" {
-		panic("auth type is required, either in config file or env")
+		log.Fatal("auth type is required, either in config file or env")
 	}
 
 	if c.AuthProvider.Type == "github" && c.AuthProvider.ClientId == "" {
-		panic("auth client id is required for oauth type, please set it in config file or env")
+		log.Fatal("auth client id is required for oauth type, please set it in config file or env")
 	}
 
 	if c.AuthProvider.Type == "github" && c.AuthProvider.ClientSecret == "" {
-		panic("auth client secret is required for oauth type, please set it in config file or env")
+		log.Fatal("auth client secret is required for oauth type, please set it in config file or env")
 	}
 
 	if c.AuthProvider.Type != "github" && c.AuthProvider.Organization != "" {
-		panic("auth organization is only used for github auth type, please set it in config file or env")
+		log.Fatal("auth organization is only used for github auth type, please set it in config file or env")
 	}
 
 	if c.Organization == "" {
-		panic("organization is required, either in config file or env")
+		log.Fatal("organization is required, either in config file or env")
 	}
 
 }

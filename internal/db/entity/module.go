@@ -1,7 +1,8 @@
 package entity
 
 import (
-	"fmt"
+	"log"
+	"log/slog"
 	"terrapak/internal/config/mid"
 	"time"
 
@@ -26,7 +27,7 @@ func (Module) TableName() string {
 
 func (m *Module) Up(client *gorm.DB) {
 	err := client.AutoMigrate(&Module{}); if err != nil {
-		panic("error migrating modules table")
+		log.Fatal("error migrating modules table")
 	}
 }
 
@@ -36,7 +37,7 @@ func (m *Module) Create(client *gorm.DB, module *Module) {
 
 func (m *Module) Read(client *gorm.DB, mid mid.MID) (module *Module) {
 	result := client.Where("Namespace = ? AND Provider = ? AND Name = ? AND Version = ?", mid.Namespace,mid.Provider,mid.Name,mid.Version).First(&module); if result.Error != nil {
-		fmt.Println(result.Error)
+		slog.Debug(result.Error.Error())
 	}
 	return module
 }

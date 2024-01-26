@@ -2,6 +2,8 @@ package jobs
 
 import (
 	"fmt"
+	"log"
+	"log/slog"
 	"os"
 	"terrapak/internal/api/auth/roles"
 	"terrapak/internal/config"
@@ -15,37 +17,38 @@ func CreateDBIfNotExists() {
 	db_client.Raw(fmt.Sprintf("select * from pg_database where datname = '%s'", client.DB_NAME)).Scan(&results)
 
 	if len(results) == 0 {
-		fmt.Println("[SETUP] - DB missing.. creating")
+		slog.Info("DB missing.. creating")
 		db_client.Exec(fmt.Sprintf("CREATE DATABASE %s", client.DB_NAME))
 		db_client.Raw(fmt.Sprintf("select * from pg_database where datname = '%s'", client.DB_NAME)).Scan(&results)
 		if len(results) > 0 {
-			fmt.Println("[SETUP] - database created")
+			slog.Info("database created")
 		} else {
-			panic("ERROR: Cannot create database")
+			log.Fatal("Cannot create database")
 
 		}
 	}
 }
 
 func CreateAdminUserIfNotExists() {
-	org := entity.Organization{}
+	org := entity.Organization{}	
+	client := client.NewDBClient()
+	gc := config.GetDefault()
 	var count int64
+
 	userEnv, ext := os.LookupEnv(config.ENV_TP_USER)
 	if !ext {
-		panic("TP_USER var not set")
+		log.Fatal("TP_USER var not set")
 		
 	}
 
 	passwordEnv, ext := os.LookupEnv(config.ENV_TP_PASSWORD)
 	if !ext {
-		panic("TP_PASSWORD var not set")
+		log.Fatal("TP_PASSWORD var not set")
 	}
 
-	client := client.NewDBClient()
-	gc := config.GetDefault()
 	client.Model(&entity.User{}).Where("name = ?", userEnv).Count(&count)
 	client.Raw("SELECT * FROM organizations WHERE name = ?", gc.Organization).Scan(&org)
-	fmt.Println(count)
+
 	if count == 0 {
 		user := entity.User{}
 		user.Name = userEnv

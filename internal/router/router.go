@@ -24,7 +24,7 @@ func Start() {
 
 	//Service Discovery
 	r.GET("/.well-known/terraform.json", discovery.Serve)
-	fmt.Println("[SETUP] - Terrapak Started")
+	fmt.Println("Terrapak Started")
 	r.Run(":5551")
 }
 

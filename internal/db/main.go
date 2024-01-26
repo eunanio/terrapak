@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"log/slog"
 	"terrapak/internal/db/client"
 	"terrapak/internal/db/entity"
 	"terrapak/internal/db/jobs"
@@ -16,8 +17,8 @@ type Table interface {
 
 func Start() {
 	jobs.CreateDBIfNotExists()
-	//gc := config.GetDefault()
 	db_client := client.NewDBClient()
+
 	// Migrate tables on startup
 	tables := []Table{
 		&entity.User{},
@@ -27,10 +28,9 @@ func Start() {
 	}
 
 	for _, table := range tables {
-		fmt.Printf("[SETUP] - migrating %s table\n", table.TableName())
+		slog.Info(fmt.Sprintf("Migrating %s table", table.TableName()))
 		table.Up(db_client)
 	}
 
 	jobs.CreateDefaultOrganizationIfNotExists()
-	//jobs.CreateAdminUserIfNotExists()
 }

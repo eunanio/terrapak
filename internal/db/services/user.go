@@ -45,10 +45,3 @@ func (us *UserService) RemoveApiKeys(user_id uuid.UUID) {
 	key := entity.ApiKeys{}
 	key.DeleteByUser(client, user_id)
 }
-
-// func (us *UserService) MemberCount() int64 {
-// 	model := entity.User{}
-// 	client := client.Default()
-
-// 	return model.Count(client)
-// }

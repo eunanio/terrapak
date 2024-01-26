@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log/slog"
 	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
 	"terrapak/internal/db/entity"
@@ -30,10 +31,10 @@ func Upload(c *gin.Context) {
 		c.JSON(400, err)
 		return
 	}
-	fmt.Println(req)
+
 	moduleExsits := ms.Find(m)
 	
-	fmt.Println(moduleExsits)
+
 	if req.Readme != "" {
 		module.Readme = req.Readme
 		if(moduleExsits.Readme != req.Readme){
@@ -107,7 +108,7 @@ func Versions(c *gin.Context) {
 	versionDTO := []VersionDTO{}
 	ms := services.ModulesService{}
 	m, err := mid.Parse(c); if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		c.JSON(400,gin.H{"message": err.Error()})
 		return
 	}
