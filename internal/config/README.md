@@ -14,8 +14,6 @@
 | `TP_GITHUB_ORG` | `auth:organization` | Github organization name | false |
 | `TP_CONFIG_FILE` | N/A | Path to config file | false |
 | `TP_STORAGE` | `storage` | Storage type - Only supported value is `s3://bucket-name` currently | true |
-| `TP_USER` | N/A | Default root user for the server | false |
-| `TP_PASSWORD` | N/A | Default root password for the server | false |
 | `TP_REDIS_HOST` | `redis:host` | Redis host | true |
 | `TP_REDIS_PASSWORD` | `redis:password` | Redis password | true |
 
