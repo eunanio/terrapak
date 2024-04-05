@@ -2,7 +2,6 @@ ngrok
 config.yml
 .env
 compose.yml
-Dockerfile
 /internal/api/auth/providers/token
 *.log
 
