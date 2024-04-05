@@ -14,3 +14,7 @@ database:
 redis:
   host: redis.example.com
   password: __PASSWORD__ 
+github:
+  appid: __APP_ID__
+  keyfile: __KEY_FILE_PATH__
+  webhook_secret: __WEBHOOK_SECRET__

@@ -84,19 +84,6 @@ func (p *S3Presign) setPresignOptions(options *s3.PresignOptions) {
 	options.Expires = time.Duration(p.LinkExpire) * time.Second
 }
 
-func (p *S3Presign) Presign(bucket,key string, ctx context.Context) (url string, err error) {
-	request, err := p.PresignClient.PresignGetObject(ctx, &s3.GetObjectInput{
-		Bucket: &bucket,
-		Key:    &key,
-	})
-
-	if err != nil {
-		return "", fmt.Errorf("failed to presign request, %v", err)
-	}
-
-	return request.URL, nil
-}
-
 func getPresignUrl(bucket,key string, ctx context.Context, client *S3Config) (url string, err error) {
 
 	S3Client := client.Client

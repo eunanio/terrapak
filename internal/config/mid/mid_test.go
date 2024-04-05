@@ -7,7 +7,7 @@ import (
 )
 
 func TestMidValidation(t *testing.T){
-	mid := NewMID("test", "test", "test", "0.0.1")
+	mid, _ := NewMID("test", "test", "test", "0.0.1")
 	err := validate(mid)
 	if err != nil {
 		t.Errorf("Error parsing mid: %s", err)
@@ -15,7 +15,7 @@ func TestMidValidation(t *testing.T){
 }
 
 func TestMidValidationEmptyName(t *testing.T){
-	mid := NewMID("test", "", "test", "0.0.1")
+	mid, _ := NewMID("test", "", "test", "0.0.1")
 	err := validate(mid); if err != nil {
 		assert.Equal(t, "[mid parsing error]: name is empty", err.Error())
 		return
@@ -25,7 +25,7 @@ func TestMidValidationEmptyName(t *testing.T){
 }
 
 func TestMidValidationEmptyProvider(t *testing.T){
-	mid := NewMID("test", "test", "", "0.0.1")
+	mid, _ := NewMID("test", "test", "", "0.0.1")
 	err := validate(mid); if err != nil {
 		assert.Equal(t, "[mid parsing error]: provider is empty", err.Error())
 		return
@@ -34,22 +34,24 @@ func TestMidValidationEmptyProvider(t *testing.T){
 }
 
 func TestMidValidationEmptyVersion(t *testing.T){
-	mid := NewMID("test", "test", "test", "")
-	_,err := buildVersion(mid.Version); if err != nil {}
+	mid, _ := NewMID("test", "test", "test", "")
+	_,err := buildVersion(mid.Version); if err != nil {
+		return
+	}
 	assert.NotNil(t, err)
 }
 
 func TestMidValidationInvalidVersion(t *testing.T){
-	mid := NewMID("test", "test", "test", ".1")
+	mid, _ := NewMID("test", "test", "test", ".1")
 	_,err := buildVersion(mid.Version);
 
 	assert.Equal(t, "Invalid Semantic Version", err.Error())
 }
 
 func TestMidValidationInvalidName(t *testing.T){
-	mid := NewMID("test", "SELECT * FROM modules", "test", "0.0.1")
+	mid, _ := NewMID("test", "SELECT * FROM modules", "test", "0.0.1")
 	err := validate(mid); if err != nil {
-		assert.Equal(t, "Invalid characters in name", err.Error())
+		assert.Equal(t, "invalid characters in name", err.Error())
 		return
 	}
 	t.Fail()

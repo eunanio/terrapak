@@ -1,6 +1,8 @@
 package modules
 
-import "mime/multipart"
+import (
+	"mime/multipart"
+)
 
 // List Versions DTO
 type ModuleDTO struct {
@@ -18,5 +20,16 @@ type VersionDTO struct {
 type UploadRequest struct {
 	Readme string `json:"readme" form:"readme"`
 	Hash   string `json:"hash" form:"hash"`
-	file *multipart.FileHeader `form:"file"`
+	File *multipart.FileHeader `form:"file"`
+}
+
+type UploadOptions struct {
+	Readme string
+	Hash   string 
+	File []byte
+}
+
+type ResponseStatus struct {
+	Code int `json:"status"`
+	Message any `json:"message"`
 }

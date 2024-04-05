@@ -5,3 +5,6 @@ compose.yml
 Dockerfile
 /internal/api/auth/providers/token
 *.log
+
+*.pem
+temp/
