@@ -5,6 +5,8 @@ on:
     branches: [ main ]
     tags:
       - '*'
+  release:
+    types: [published]
 
 jobs:
   buildAndPush:
@@ -21,15 +23,10 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Extract tag name
-      id: extract_tag
-      run: echo "##[set-output name=tag;]$(echo ${GITHUB_REF#refs/tags/})"
-
     - name: Build and push
       id: docker_build
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/terrapak:${{ steps.extract_tag.outputs.tag }}
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/terrapak:${{ github.event.release.tag_name }}
