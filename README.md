@@ -58,7 +58,7 @@ version: "1"
 # This compose file is targeting local development.For deployments please use dedicated services like RDS for Postgres
 services:
   terrapak:
-    image: monoci/terrapak:v2
+    image: monoci/terrapak:v2.0.0
     ports:
       - "5551:5551"
     depends_on:
