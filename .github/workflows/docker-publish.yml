@@ -7,11 +7,14 @@ on:
       - '*'
 
 jobs:
-  build:
+  buildAndPush:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
     - name: Login to Docker Hub
       uses: docker/login-action@v1 
