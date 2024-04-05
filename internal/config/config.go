@@ -25,6 +25,8 @@ const (
 	ENV_TP_AUTH_SECRET 	  = "TP_AUTH_SECRET"
 	ENV_TP_SECRET 		  = "TP_SECRET"
 	ENV_TP_GITHUB_ORG 	  = "TP_GITHUB_ORG"
+	ENV_TP_AUTH_APP_ID 	  = "TP_AUTH_APP_ID"
+	ENV_TP_AUTH_KEY_FILE  = "TP_AUTH_KEY_FILE"
 	ENV_CONFIG_FILE 	  = "TP_CONFIG_FILE"
 	ENV_STORAGE_PATH 	  = "TP_STORAGE"
 	ENV_ORGANIZATION 	  = "TP_ORGANIZATION"
@@ -43,6 +45,7 @@ type Config struct {
 	Redis 		 RedisConfig `yaml:"redis"`
 	AuthProvider AuthProviderConfig `yaml:"auth"`
 	StorageSource 	 storagesource.StorageSource
+	GitHubAppConfig  GitHubAppConfig `yaml:"github"`
 	SecretString string `yaml:"secret"`
 }
 
@@ -63,6 +66,13 @@ type DatabaseConfig struct {
 type RedisConfig struct {
 	Hostname string `yaml:"host"`
 	Password string `yaml:"password"`
+}
+
+type GitHubAppConfig struct {
+	AppId 		 string 	`yaml:"appid"`
+	KeyFile 	 string 	`yaml:"keyfile"`
+	WebhookSecret string 	`yaml:"webhook_secret"`
+	PrivateKey 	 string
 }
 
 func Load() Config {
@@ -88,12 +98,21 @@ func Load() Config {
 		log.Fatal(err)
 	}
 	c.StorageSource = storageSource
-
 	setupEnvs(&c)
+	loadKeyFile(&c)
 	validate(&c)
 	defaultClient = &c
 
 	return c
+}
+
+func loadKeyFile(c *Config) {
+	if c.GitHubAppConfig.KeyFile != "" {
+		contents, err := os.ReadFile(c.GitHubAppConfig.KeyFile); if err != nil {
+			log.Fatal(err)
+		}
+		c.GitHubAppConfig.PrivateKey = string(contents)
+	}
 }
 
 func validate(c *Config){
@@ -136,13 +155,12 @@ func validate(c *Config){
 }
 
 func GetDefault() *Config {
-	return defaultClient
+	def := defaultClient
+	return def
 }
 
 func setupEnvs(c *Config){
-
 	_, configFileSet := os.LookupEnv(ENV_CONFIG_FILE)
-
 	val, exists := os.LookupEnv(ENV_DB_HOST)
 	
 	if exists && !configFileSet {
@@ -195,6 +213,11 @@ func setupEnvs(c *Config){
 
 	if exists && !configFileSet {
 		c.AuthProvider.RoleByEmail = strings.Split(val, ",")
+	}
+
+	val, exists = os.LookupEnv(ENV_TP_AUTH_KEY_FILE)
+	if exists {
+		c.GitHubAppConfig.KeyFile = val
 	}
 
 

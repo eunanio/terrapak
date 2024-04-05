@@ -16,13 +16,19 @@ type MID struct {
 	Version     string `json:"version"`
 }
 
-func NewMID(namespace, name, provider, version string) MID {
-	return MID{
+func NewMID(namespace, name, provider, version string) (MID, error) {
+	mid := MID{
 		Name: name,
 		Provider: provider,
 		Namespace: namespace,
 		Version: version,
 	}
+
+	err := validate(mid); if err != nil {
+		slog.Error(err.Error())
+		return mid , err
+	}
+	return mid, nil
 }
 
 func Parse(c *gin.Context) (mid MID, err error){
@@ -55,15 +61,15 @@ func validate(mid MID) error {
 	}
 
 	if !isUrlSafeString(mid.Name) {
-		return fmt.Errorf("Invalid characters in name")
+		return fmt.Errorf("invalid characters in name")
 	}
 
 	if !isUrlSafeString(mid.Provider) {
-		return fmt.Errorf("Invalid characters in provider")
+		return fmt.Errorf("invalid characters in provider")
 	}
 
 	if !isUrlSafeString(mid.Namespace) {
-		return fmt.Errorf("Invalid characters in namespace")
+		return fmt.Errorf("invalid characters in namespace")
 	}
 	
 	return nil

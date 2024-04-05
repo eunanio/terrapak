@@ -1,19 +1,17 @@
 # Terrapak
-Terrapak is a private registry for your Terraform modules. Terrapak integrates with your GitHub pull requests to automatically publish new versions of your Terraform modules. This server works in conjunction with the [Terrapack-Action](https://github.com/eunanhardy/terrapak-action) to deliver a configuration driven workflow that allows you more flexability in how you version your infrastructure. 
+Terrapak is a private terraform registry. It integrates with your Github pull requests to automatically manage your terraform modules and make version control a much easier task.
 
 ## Feature Overview
 - Automatic versioning of Terraform modules
 - Monorepo friendly CI/CD workflow
 - Supports S3 as storage backend
-- Automatic cleanup of draft modules when pull request is closed unsuccessfully
-- Support GitHub Organisations for Authorization
-- Support for `terraform login` with github
+- Support GitHub Organisations for Authorization with `terraform login`
 
 ## Requirements
 - Postgres 16
 - Redis 7
 - Github OAuth App
-- S3 Bucket for modules
+- S3 Bucket
 
 ## Getting Started
 
@@ -24,7 +22,6 @@ Example `terrapak.hcl` file:
 # terrapak.hcl
 
 terrapak {
-    hostname = "terrapak.dev"
     organization = "myorg"
 }
 
@@ -61,7 +58,7 @@ version: "1"
 # This compose file is targeting local development.For deployments please use dedicated services like RDS for Postgres
 services:
   terrapak:
-    image: monoci/terrapak:v1
+    image: monoci/terrapak:v2
     ports:
       - "5551:5551"
     depends_on:

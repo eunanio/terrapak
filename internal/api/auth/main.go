@@ -154,7 +154,7 @@ func syncUserAccounts(access_token string) string {
 		user.Email = ""
 		user.AuthorityID = fmt.Sprintf("%d", info.ID)
 		user.Name = info.Name
-		user.Role = roles.Editor
+		user.Role = roles.Reader
 		user = us.Create(*user)
 	 }
 

@@ -1,10 +1,6 @@
 package modules
 
 import (
-	"bytes"
-	"fmt"
-	"io"
-	"log/slog"
 	"terrapak/internal/config"
 	"terrapak/internal/config/mid"
 	"terrapak/internal/db/entity"
@@ -12,25 +8,16 @@ import (
 	"terrapak/internal/storage"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func Upload(c *gin.Context) {
+func Upload(m mid.MID, req UploadOptions) (res *ResponseStatus){
 	gc := config.GetDefault()
 	module := entity.Module{}
 	ms := services.ModulesService{}
-	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400, err)
-		return
-	}
+	
 	storageCleint := storage.NewClient(gc.StorageSource.Protocol)
-	buffer := bytes.NewBuffer(nil)
-	req := UploadRequest{}
-	err = c.Bind(&req); if err != nil {
-		c.JSON(400, err)
-		return
-	}
+	
 
 	moduleExsits := ms.Find(m)
 	
@@ -57,67 +44,51 @@ func Upload(c *gin.Context) {
 		ms.Update(moduleExsits)
 	}
 	
-	file, err := c.FormFile("file"); if err != nil {
-		c.JSON(400, err)
-		return
+
+	err := storageCleint.Upload(m,req.File); if err != nil {
+		res = &ResponseStatus{Code: 400, Message: "Error uploading module"}
+		return res
 	}
-
-	src,_ := file.Open()
-	defer src.Close()
-	io.Copy(buffer, src)
-
-	storageCleint.Upload(m,buffer.Bytes())
+	
+	res = &ResponseStatus{Code: 201, Message: "Module uploaded"}
+	return res
 }
 
-func Download(c *gin.Context) {
+func Download(m mid.MID) (res *ResponseStatus) {
 	gc := config.GetDefault()
 	storageClient := storage.NewClient(gc.StorageSource.Protocol)
 	ms := services.ModulesService{}
-	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400,gin.H{"message": err.Error()})
-		return
-	}
 
 	url, err := storageClient.Download(m); if err != nil {
-		c.JSON(400, err)
-		return
+		res = &ResponseStatus{Code: 400, Message: "Error downloading module"}
+		return res
 	}
 	ms.IncrementDownload(m)
-	c.Header("X-Terraform-Get", url)
-	c.Status(204)
+	res = &ResponseStatus{Code: 204, Message: url}
+	return res
 }
 
-func Read(c *gin.Context) {
+func Read(m mid.MID) *entity.Module {
 	ms := services.ModulesService{}
-	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400,gin.H{"message": err.Error()})
-		return
-	}
 
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		c.JSON(404,gin.H{"message": "Module not found"})
-		return
+		return nil
 	}
 
-	c.JSON(200,module)
+	return module
 }
 
-func Versions(c *gin.Context) {
+func Versions(m mid.MID) *ResponseStatus {
 	moduleDTO := ModuleDTO{}
 	moduleVersionsDTO := []ModuleVersionsDTO{}
 	versionDTO := []VersionDTO{}
 	ms := services.ModulesService{}
-	m, err := mid.Parse(c); if err != nil {
-		slog.Error(err.Error())
-		c.JSON(400,gin.H{"message": err.Error()})
-		return
-	}
+	res := ResponseStatus{}
 	
 	list := ms.FindAll(m)
-	fmt.Println(list)
 	if len(list) == 0 {
-		c.JSON(404,gin.H{"message":"module not found"})
-		return
+		res = ResponseStatus{Code: 404, Message: "Module not found"}
+		return &res
 	}
 
 	for _, module := range list {
@@ -126,49 +97,45 @@ func Versions(c *gin.Context) {
 	moduleVersionsDTO = append(moduleVersionsDTO, ModuleVersionsDTO{Versions: versionDTO})
 	moduleDTO.Module = moduleVersionsDTO
 
-	c.JSON(200,moduleDTO)
+	res = ResponseStatus{Code: 200, Message: moduleDTO}
+	return &res
 }
 
-func RemoveDraft(c *gin.Context) {
+func RemoveDraft(m mid.MID) (res *ResponseStatus) {
 	gc := config.GetDefault()
 	storageClient := storage.NewClient(gc.StorageSource.Protocol)
-
-	m := mid.MID{}
 	ms := services.ModulesService{}
-	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400,gin.H{"message": "Error parsing module id"})
-		return
-	}
 
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		c.JSON(404,gin.H{"message": "Module not found"})
-		return
+		res = &ResponseStatus{Code: 404, Message: "Module not found"} 
+		return res
 	}
 
 	if module.ID != uuid.Nil {
 		if module.PublishedAt.Year() < 2000 {
 			ms.Remove(m)
 			storageClient.Delete(m)
-			c.JSON(200,gin.H{"message": "Module removed"})
-			return
+			res = &ResponseStatus{Code: 200, Message: "Module removed"}
+			return res
 		}
 	}
+
+	return nil
 }
 
-func PublishDraft(c *gin.Context) {
-	m := mid.MID{}
+func PublishDraft(m mid.MID) (res *ResponseStatus) {
 	ms := services.ModulesService{}
-	m, err := mid.Parse(c); if err != nil {
-		c.JSON(400,gin.H{"message": err.Error()})
-		return
-	}
 	module := ms.Find(m); if module.ID == uuid.Nil {
-		c.JSON(404,gin.H{"message": "Module not found"})
-		return
+
+		res = &ResponseStatus{Code: 404, Message: "Module not found"}
+		return res
 	}
 
 	if module.ID != uuid.Nil && module.PublishedAt.IsZero() {
 		module.PublishedAt = time.Now()
 		ms.Update(module)
+		res = &ResponseStatus{Code: 200, Message: "Module published"}
 	}
+
+	return nil
 }
